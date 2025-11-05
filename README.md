@@ -1,32 +1,50 @@
+Collecting workspace informationUpdated README.md
+
+```markdown
+/* ...existing code... */
 # Bill-Divide
 
 ```
 Bill-Divide/
-├── .gitignore
 ├── README.md
 ├── application/
-│   ├── bill_divide/                 # project settings/urls
+│   ├── .gitignore
+│   ├── db.sqlite3
 │   ├── manage.py
-│   ├── core/                        # main app
-│   │   ├── templates/
-│   │   │   ├── _partials/           # reusable bits (partials)
-│   │   │   │   ├── _head.html
-│   │   │   │   ├── _header.html
-│   │   │   │   ├── _footer.html
-│   │   │   │   ├── _nav.html
-│   │   │   │   └── _flash_messages.html
-│   │   │   ├── base.html            # master layout (extends/includes partials)
-│   │   │   ├── home.html            # example page (extends base)
-│   │   │   └── blog/                # section-specific templates (optional)
-│   │   ├── static/
-│   │   │   ├── css/
-│   │   │   │   ├── base.css
-│   │   │   │   └── components/      # buttons, forms, cards, utilities
-│   │   │   ├── js/
-│   │   │   │   ├── main.js
-│   │   │   │   └── modules/         # per-feature scripts
-│   │   │   └── img/
-│   │   └── ... (views, urls, models)
-│   └── assets/                      # optional: raw/uncompiled assets (scss, ts)
-└── docs/                            # design notes, wireframes, decisions
-```
+│   ├── bill_divide/
+│   │   ├── __init__.py
+│   │   ├── asgi.py
+│   │   ├── settings.py
+│   │   ├── urls.py
+│   │   └── wsgi.py
+│   └── core/
+│       ├── __init__.py
+│       ├── admin.py
+│       ├── apps.py
+│       ├── models.py
+│       ├── tests.py
+│       ├── urls.py
+│       ├── views.py
+│       ├── migrations/
+│       │   └── __init__.py
+│       ├── static/
+│       │   └── core/
+│       │       ├── css/
+│       │       │   ├── base.css
+│       │       │   └── app.css
+│       │       ├── js/
+│       │       │   ├── main.js
+│       │       │   ├── router.js
+│       │       │   ├── state.js
+│       │       │   ├── storage.js
+│       │       │   └── views/
+│       │       │       ├── home.js
+│       │       │       ├── bills.js
+│       │       │       └── profile.js
+│       │       └── img/
+│       └── templates/
+│           └── core/
+│               ├── base.html
+│               ├── bills.js
+│               └── _partials/
+└── docs/
