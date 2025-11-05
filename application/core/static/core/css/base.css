@@ -1,180 +1,101 @@
-/* ----- Base / shared styles for the whole site ----- */
+/* === BASE GLOBAL STYLES (refactored to your palette) === */
 
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
+/* Your theme tokens */
 :root {
-    --primary-500: #283d3b; 
-    --primary-600: #197278;
-    --primary-700: #edddd4;
-    --danger: #ff4757;
-    --success: #1dd1a1;
-    --cyan: #48dbfb;
+  /* Brand + accents */
+  --primary-500:#283d3b;
+  --primary-600:#197278;
+  --primary-700:#edddd4;
+  --cyan:#48dbfb;
+  --danger:#ff4757;
+  --success:#1dd1a1;
 
-    --text-900: #333;
-    --text-700: #666;
-    --text-500: #999;
+  /* Text scale */
+  --text-900:#333;
+  --text-700:#666;
+  --text-500:#999;
 
-    --border: #e0e0e0;
-    --bg-soft: #f8f9fa;
-    --chip-bg: #f0f4ff;
+  /* Surfaces */
+  --border:#e0e0e0;
+  --bg-soft:#f8f9fa;
+  --chip-bg:#f0f4ff;
+
+  /* ===== App tokens mapped to your colors ===== */
+  --bg:var(--bg-soft);
+  --card:#ffffff;
+  --text:var(--text-900);
+  --muted:var(--text-700);
+  /* keep name for existing components */
+  --surface-subtle:var(--chip-bg);
+
+  /* borders & motion */
+  --radius:12px;
+  --shadow:0 1px 2px rgba(0,0,0,.04), 0 8px 24px rgba(0,0,0,.06);
+  --trans:180ms cubic-bezier(.2,.8,.2,1);
+
+  /* Link / action blues -> use your cyan */
+  --blue:var(--cyan);
+  --blue-600:var(--cyan);
+  --blue-500:var(--cyan);
+
+  /* Status colors derived from your danger/success */
+  --neg-bg: color-mix(in srgb, var(--danger) 14%, white);
+  --neg-fg: var(--danger);
+  --pos-bg: color-mix(in srgb, var(--success) 14%, white);
+  --pos-fg: var(--success);
+
+  /* Optional grayscale & utility tokens kept for compatibility */
+  --gray-50:#f9fafb; --gray-100:#f3f4f6; --gray-200:#e5e7eb; --gray-300:#d1d5db;
+  --gray-400:#9ca3af; --gray-500:#6b7280; --gray-600:#4b5563; --gray-700:#374151;
+  --gray-800:#1f2937; --gray-900:#111827;
+
+  /* If any components still reference these, map them sensibly */
+  --red-50: color-mix(in srgb, var(--danger) 10%, white);
+  --red-600: var(--danger);
+  --green-50: color-mix(in srgb, var(--success) 10%, white);
+  --green-600: var(--success);
+
+  /* Legacy “yellow” tokens remapped to your warm neutral */
+  --yellow-100: color-mix(in srgb, var(--primary-700) 24%, white);
+  --yellow-800:#92400e; /* keep for contrasty text; override if desired */
 }
 
-body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-    background: linear-gradient(135deg, var(--primary-500) 0%, var(--primary-600) 100%);
-    min-height: 100vh;
-    padding: 20px;
-    color: var(--text-900);
+/* === Dark mode tuned from your palette === */
+.dark{
+  /* Deep surfaces pulled from primary-500 */
+  --bg: color-mix(in srgb, var(--primary-500) 70%, black 30%);
+  --card: color-mix(in srgb, var(--primary-500) 55%, black 45%);
+  --text: color-mix(in srgb, white 92%, var(--primary-700) 8%);
+  --muted: var(--text-500);
+  --border: color-mix(in srgb, white 10%, transparent);
+  --blue: color-mix(in srgb, var(--cyan) 80%, white 20%);
+  --surface-subtle: color-mix(in srgb, var(--text) 10%, transparent);
+
+  /* Dark-mode status tints */
+  --neg-bg: color-mix(in srgb, var(--danger) 20%, transparent);
+  --neg-fg: color-mix(in srgb, var(--danger) 88%, white 12%);
+  --pos-bg: color-mix(in srgb, var(--success) 20%, transparent);
+  --pos-fg: color-mix(in srgb, var(--success) 88%, white 12%);
 }
 
-.container {
-    max-width: 800px;
-    margin: 0 auto;
-    background: #fff;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-    overflow: hidden;
-    margin-top: 20px; /* adjust based on nav height */
+/* === RESET & GLOBAL FIXES === */
+*{ box-sizing:border-box }
+
+html,body{ height:100% }
+html{ overflow-x:hidden }
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--text);
+  font:16px/1.45 system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,'Apple Color Emoji','Segoe UI Emoji';
+  overflow-x:hidden;
 }
 
-.header {
-    background: linear-gradient(135deg, var(--primary-500) 0%, var(--primary-600) 100%);
-    color: #fff;
-    padding: 30px;
-    text-align: center;
-}
+/* Flex/Grid child shrink fix */
+.row > *{ min-width:0 }
 
-.header h1 {
-    font-size: 28px;
-    margin-bottom: 5px;
-}
+/* Responsive media */
+img, video, canvas, svg{ max-width:100%; height:auto }
 
-.header p {
-    opacity: 0.9;
-    font-size: 14px;
-}
-
-.content {
-    padding: 30px;
-}
-
-.section {
-    margin-bottom: 30px;
-}
-
-.section-title {
-    font-size: 18px;
-    font-weight: 700;
-    margin-bottom: 15px;
-    color: var(--text-900);
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.section-title::before {
-    content: '';
-    width: 4px;
-    height: 20px;
-    background: var(--primary-500);
-    border-radius: 2px;
-}
-
-/* Inputs & buttons (shared) */
-.input-group {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 15px;
-}
-
-input[type="text"],
-input[type="number"] {
-    flex: 1;
-    padding: 12px 15px;
-    border: 2px solid var(--border);
-    border-radius: 10px;
-    font-size: 14px;
-    transition: all 0.3s;
-}
-
-input[type="text"]:focus,
-input[type="number"]:focus {
-    outline: none;
-    border-color: var(--primary-500);
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-}
-
-.btn {
-    padding: 12px 20px;
-    border: none;
-    border-radius: 10px;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.btn-primary {
-    background: var(--primary-500);
-    color: #fff;
-}
-.btn-primary:hover {
-    background: var(--primary-600);
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
-}
-
-.btn-secondary {
-    background: #f0f0f0;
-    color: var(--text-900);
-}
-.btn-secondary:hover { background: #e0e0e0; }
-
-.btn-danger {
-    background: var(--danger);
-    color: #fff;
-    padding: 8px 12px;
-    font-size: 12px;
-}
-.btn-danger:hover { background: #ee2f3f; }
-
-.btn-edit {
-    background: var(--cyan);
-    color: #fff;
-    padding: 8px 12px;
-    font-size: 12px;
-    margin-right: 8px;
-}
-.btn-edit:hover { background: #0abde3; }
-
-.btn-save {
-    background: var(--success);
-    color: #fff;
-    padding: 8px 12px;
-    font-size: 12px;
-    margin-right: 8px;
-}
-.btn-save:hover { background: #10ac84; }
-
-.btn-cancel {
-    background: #f0f0f0;
-    color: var(--text-900);
-    padding: 8px 12px;
-    font-size: 12px;
-    margin-right: 8px;
-}
-.btn-cancel:hover { background: #e0e0e0; }
-
-
-/* Responsive */
-@media (max-width: 600px) {
-    .container { border-radius: 0; }
-    .content { padding: 20px; }
-    .input-group { flex-direction: column; }
-}
+/* Prevent long text overflow */
+*{ overflow-wrap:anywhere }

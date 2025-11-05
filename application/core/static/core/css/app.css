@@ -1,0 +1,257 @@
+/* === APP LAYOUT & COMPONENTS === */
+
+h1,h2,h3{margin:.25rem 0 .5rem}
+h1{font-size:1.25rem;font-weight:700}
+h2{font-size:1.15rem;font-weight:700}
+h3{font-size:1rem;font-weight:600}
+/* Section headers */
+.section-header {
+  display: block;
+  font-weight: 700;
+  margin-bottom: .25rem;
+}
+
+.container{max-width:780px;margin:0 auto;padding:80px 16px 92px}
+
+.card{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  box-shadow:var(--shadow);
+  padding:16px;
+}
+
+/* Buttons */
+.btn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:.5rem;
+  border-radius:10px;
+  border:1px solid var(--border);
+  padding:.6rem .9rem;
+  background:#fff;
+  color:#111827;
+  cursor:pointer;
+  transition:transform var(--trans),background var(--trans),border-color var(--trans),color var(--trans);
+  user-select:none;
+}
+.btn:hover{transform:translateY(-1px)}
+.btn:active{transform:none}
+.btn.primary{background:var(--blue);color:#fff;border-color:transparent}
+.btn.ghost{background:transparent}
+.btn.outline{background:transparent}
+.btn.destructive{background:var(--red-600);color:#fff;border-color:transparent}
+
+/* Dark-mode button adjustments */
+.dark .btn{background:var(--card);color:var(--text);border-color:var(--border)}
+.dark .btn.outline{background:transparent}
+.dark .btn.primary{background:var(--blue);color:#fff;border-color:transparent}
+.dark .btn:hover{filter:brightness(1.05)}
+
+/* Inputs */
+.input,.select,.file{
+  width:100%;
+  padding:.65rem .75rem;
+  border:1px solid var(--border);
+  border-radius:10px;
+  background:transparent;
+  color:var(--text);
+}
+
+/* Layout helpers */
+.row{display:flex;gap:.5rem}
+.row-2{display:grid;grid-template-columns:1fr 1fr;gap:.5rem}
+.badge{
+  display:inline-flex;
+  align-items:center;
+  gap:.35rem;
+  font-size:.75rem;
+  padding:.25rem .5rem;
+  border-radius:999px;
+  border:1px solid var(--border);
+  background:var(--gray-100);
+  color:var(--gray-700);
+}
+.badge.chip{cursor:pointer}
+.muted{color:var(--muted)}
+.right{margin-left:auto}
+.space-y>*+*{margin-top:.5rem}
+.space-y-2>*+*{margin-top:.5rem}
+.space-y-3>*+*{margin-top:.75rem}
+.space-y-4>*+*{margin-top:1rem}
+.center{text-align:center}
+
+/* Header & nav */
+header.app{
+  position:fixed;
+  left:0;
+  right:0;
+  top:0;
+  z-index:10;
+  background:var(--card);
+  border-bottom:1px solid var(--border);
+}
+header .inner{
+  max-width:780px;
+  margin:0 auto;
+  padding:12px 16px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:.5rem;
+}
+.logo{
+  width:24px;
+  height:24px;
+  border-radius:50%;
+  background:var(--blue);
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  color:white;
+  font-weight:800;
+}
+
+nav.bottom{
+  position:fixed;
+  left:0;
+  right:0;
+  bottom:0;
+  z-index:10;
+  background:var(--card);
+  border-top:1px solid var(--border);
+}
+nav.bottom .inner{max-width:780px;margin:0 auto;display:flex}
+nav.bottom button{
+  appearance:none;
+  background:none;
+  border:none;
+  flex:1;
+  padding:12px 8px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:6px;
+  color:var(--muted);
+  cursor:pointer;
+  transition:color var(--trans);
+}
+nav.bottom button.active{color:var(--blue)}
+
+/* === SCROLL + VIEW FIX === */
+.screen{
+  position:relative;
+  overflow:hidden; /* ✅ prevents horizontal overflow from translated views */
+  height:calc(100svh - 80px - 64px);
+  min-height:420px;
+}
+.view{
+  position:absolute;
+  inset:0;
+  padding:0;
+  opacity:0;
+  transform:translateX(100%);
+  transition:transform 300ms ease,opacity 180ms ease;
+  min-height:100%;
+  overflow:auto;   /* each view scrolls internally */
+  will-change:transform;
+}
+.view.active{opacity:1;transform:translateX(0)}
+.view.exit-left{opacity:0;transform:translateX(-100%)}
+
+/* Toolbar */
+.toolbar{display:flex;gap:.5rem}
+
+/* Toasts */
+.toast-wrap{
+  position:fixed;
+  right:16px;
+  bottom:80px;
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  z-index:50;
+}
+.toast{
+  background:#111827;
+  color:#fff;
+  padding:.6rem .8rem;
+  border-radius:10px;
+  box-shadow:var(--shadow);
+  opacity:0;
+  transform:translateY(6px);
+  transition:all var(--trans);
+}
+.toast.show{opacity:1;transform:translateY(0)}
+
+/* Status badges */
+.status-pending{background:var(--yellow-100);color:var(--yellow-800);border-color:transparent}
+.status-partial{background:var(--blue-100);color:var(--blue-800);border-color:transparent}
+.status-settled{background:var(--green-50);color:var(--green-600);border-color:transparent}
+.paid{background:var(--green-50);color:var(--green-600)}
+.unpaid{background:var(--red-50);color:var(--red-600)}
+
+/* Notify badge (for unpaid participants in past bills) */
+.badge.notify {
+  background: color-mix(in srgb, var(--cyan) 15%, white);
+  color: var(--primary-500);
+  border-color: transparent;
+  font-style: italic;
+}
+.dark .badge.notify {
+  background: color-mix(in srgb, var(--cyan) 25%, transparent);
+  color: var(--text);
+  border-color: var(--cyan);
+}
+
+
+
+/* Misc */
+.divider{height:1px;background:var(--border);margin:.75rem 0}
+.hidden{display:none!important}
+.img-receipt{width:100%;height:190px;object-fit:cover;border-radius:10px;border:1px solid var(--border)}
+.hint{font-size:.8rem;color:var(--muted)}
+.safe{padding-top:72px;padding-bottom:92px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:.5rem}
+.avatar{width:64px;height:64px;border-radius:50%;background:var(--blue);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:22px}
+
+/* Chips */
+.chips{display:flex;flex-wrap:wrap;gap:.4rem}
+.chip{
+  border:1px solid var(--border);
+  border-radius:999px;
+  padding:.25rem .55rem;
+  cursor:pointer;
+  background:var(--gray-100);
+  color:var(--gray-700);
+  transition:all var(--trans);
+}
+.chip.active{background:var(--blue-100);color:var(--blue-900);border-color:var(--blue-200)}
+.dark .chip{background:color-mix(in srgb,var(--text) 12%,transparent);color:var(--text)}
+.dark .chip.active{background:color-mix(in srgb,var(--blue) 25%,transparent);color:var(--text);border-color:var(--blue)}
+
+.i{font-style:normal}
+
+/* Focus ring */
+button:focus,.input:focus,.select:focus{
+  outline:2px solid color-mix(in srgb,var(--blue) 60%,#fff);
+  outline-offset:2px;
+}
+
+/* Utility surface */
+.bg-subtle{background:var(--surface-subtle)!important}
+
+/* Inline UX helpers */
+.error-text{color:var(--red-600);font-size:.85rem}
+.confirm-bar{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:.75rem;
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:.6rem .75rem;
+  background:var(--surface-subtle);
+}
+.confirm-bar .actions{display:flex;gap:.5rem}
