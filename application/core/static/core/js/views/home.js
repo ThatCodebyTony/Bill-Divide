@@ -37,7 +37,7 @@ export function renderHome(App){
   const net = clamp2(owedToYou - youOwe);
   const cur = App.preferences.currency;
   const recentBills = [...App.bills].sort((a,b)=>new Date(b.date)-new Date(a.date)).slice(0,5);
-  const hasDraft = !!localStorage.getItem('billSplitter_newBillDraft');
+  const hasDraft = !!localStorage.getItem('Bill Divideter_newBillDraft');
 
   return `
     <div class="space-y-4">

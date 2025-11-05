@@ -10,14 +10,14 @@ import { toast } from './components/toast.js';
 // tiny render hub
 function render(){
   if(!App.isLoggedIn){
-    $('#title').textContent = 'BillSplit';
+    $('#title').textContent = 'Bill Divide';
     $('nav.bottom').classList.add('hidden');
     $('#screen').innerHTML = `
       <section class="view active">
         <div class="card" style="max-width:520px;margin:40px auto;">
           <div class="center space-y">
             <div class="logo" style="width:64px;height:64px;font-size:28px">🧾</div>
-            <h1>Bill Splitter</h1>
+            <h1>Bill Divide</h1>
             <p class="muted">Split bills with friends easily</p>
           </div>
           <div class="space-y-3" style="margin-top:18px">

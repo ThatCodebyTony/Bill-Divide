@@ -1,6 +1,6 @@
-const STORAGE_KEY = 'billSplitter_store';
-const AUTH_KEY = 'billSplitter_auth';
-const DRAFT_KEY = 'billSplitter_newBillDraft';
+const STORAGE_KEY = 'Bill Divideter_store';
+const AUTH_KEY = 'Bill Divideter_auth';
+const DRAFT_KEY = 'Bill Divideter_newBillDraft';
 
 export const Keys = { STORAGE_KEY, AUTH_KEY, DRAFT_KEY };
 

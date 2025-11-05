@@ -99,3 +99,19 @@ img, video, canvas, svg{ max-width:100%; height:auto }
 
 /* Prevent long text overflow */
 *{ overflow-wrap:anywhere }
+/* === Home "New Bill" / "Return to Past Bills" button === */
+#toggle-create.btn {
+  background: var(--cyan);
+  color: #fff;
+  border-color: transparent;
+  font-weight: 600;
+  transition: all var(--trans);
+}
+#toggle-create.btn:hover {
+  filter: brightness(1.05);
+  transform: translateY(-1px);
+}
+.dark #toggle-create.btn {
+  background: color-mix(in srgb, var(--cyan) 80%, white 10%);
+  color: #fff;
+}

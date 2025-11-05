@@ -86,7 +86,7 @@ export function renderBills(App){
     <div class="space-y-4">
       <div class="card">
         <button id="toggle-create" class="btn" style="width:100%;justify-content:space-between">
-          <span>${App.shouldOpenCreateForm? '▲ Return to Past Bills' : `${hasDraft?'Continue Draft':'New Bill'}`}</span>
+          <span>${App.shouldOpenCreateForm? '▲ Bill Divide Bills' : `➕ ${hasDraft?'Continue Draft':'New Bill'}`}</span>
         </button>
         <div id="create-wrap" class="${App.shouldOpenCreateForm?'':'hidden'}" style="margin-top:12px">
           ${App.shouldOpenCreateForm ? renderCreateForm() : ''}

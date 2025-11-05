@@ -1,7 +1,7 @@
 import { $ } from './utils.js';
 
 export const views = [
-  { index:0, title:'BillSplit', hash:'home' },
+  { index:0, title:'Bill Divide', hash:'home' },
   { index:1, title:'Bills', hash:'bills' },
   { index:2, title:'Profile', hash:'profile' },
 ];
