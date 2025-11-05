@@ -1,0 +1,95 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Bill Divide</title>
+
+    <!-- Base + page styles -->
+    <link rel="stylesheet" href="{% static 'core/css/base.css' %}">
+    <link rel="stylesheet" href="{% static 'core/css/create_bill.css' %}">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Bill Divide</h1>
+            <p>"I hate math"</p>
+        </div>
+
+        <div class="content">
+            <!-- Users Section -->
+            <div class="section">
+                <div class="section-title">People</div>
+                <div class="input-group">
+                    <input type="text" id="userName" placeholder="Enter person's name" />
+                    <button class="btn btn-primary" onclick="addUser()">Add Person</button>
+                </div>
+                <div class="users-list" id="usersList"></div>
+            </div>
+
+            <!-- Items Section -->
+            <div class="section">
+                <div class="section-title">Items</div>
+                <div class="input-group">
+                    <input type="text" id="itemName" placeholder="Item name" />
+                    <input type="number" id="itemPrice" placeholder="Price" step="0.01" min="0" />
+                    <button class="btn btn-primary" onclick="addItem()">Add Item</button>
+                </div>
+                <div id="itemsList"></div>
+            </div>
+
+            <!-- Tax & Tip Section -->
+            <div class="section">
+                <div class="section-title">Tax & Tip</div>
+                <div class="tax-tip-section">
+                    <div class="tax-tip-group">
+                        <label for="taxInput">Tax (%)</label>
+                        <input type="number" id="taxInput" placeholder="0" step="0.01" min="0" onchange="calculate()" />
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="rememberTax" onchange="handleRememberTax()" />
+                            <label for="rememberTax">Remember tax rate</label>
+                        </div>
+                    </div>
+                    <div class="tax-tip-group">
+                        <label for="tipInput">Tip (%)</label>
+                        <input type="number" id="tipInput" placeholder="0" step="0.01" min="0" onchange="calculate()" />
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="rememberTip" onchange="handleRememberTip()" />
+                            <label for="rememberTip">Remember tip rate</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Summary Section -->
+            <div class="section">
+                <div class="summary">
+                    <div class="summary-title">Summary</div>
+                    <div class="summary-row">
+                        <span>Subtotal:</span>
+                        <span id="subtotal">$0.00</span>
+                    </div>
+                    <div class="summary-row">
+                        <span>Tax:</span>
+                        <span id="taxAmount">$0.00</span>
+                    </div>
+                    <div class="summary-row">
+                        <span>Tip:</span>
+                        <span id="tipAmount">$0.00</span>
+                    </div>
+                    <div class="summary-row">
+                        <span>Total:</span>
+                        <span id="total">$0.00</span>
+                    </div>
+
+                    <div class="person-breakdown" id="personBreakdown"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- App script -->
+    <script src="{% static 'core/js/create_bill.js' %}" defer></script>
+</body>
+</html>

@@ -1,3 +1,4 @@
 from django.shortcuts import render
 
-# Create your views here.
+def create_bill(request):
+    return render(request, "core/create_bill.html")
