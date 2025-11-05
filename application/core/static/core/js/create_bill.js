@@ -335,3 +335,68 @@ function escapeAttr(str) {
     // Slightly stricter for attribute contexts
     return escapeHtml(str).replaceAll('`', '&#096;');
 }
+
+// ----- Floating Create Bill button logic -----
+(function () {
+  const fab = document.getElementById('createBillFab');
+  if (!fab) return; // if the element isn't on this page, bail
+
+  // Define the minimal requirements:
+  // - at least 1 person (a .user-chip rendered in #usersList)
+  // - at least 1 item with a positive price (we look for .item-card OR numeric price text)
+  function meetsMinimalRequirements() {
+    const hasPerson = !!document.querySelector('#usersList .user-chip');
+
+    // Prefer item cards if your UI renders them; fallback to any number > 0 we can detect
+    const hasItemCard = !!document.querySelector('#itemsList .item-card');
+    let hasPricedItem = hasItemCard;
+
+    if (!hasPricedItem) {
+      // Fallback heuristic: scan any $amounts inside itemsList
+      const priceTexts = Array.from(document.querySelectorAll('#itemsList *'))
+        .map(n => n.textContent || '')
+        .join(' ');
+      const match = priceTexts.match(/\$?\s*([0-9]+(?:\.[0-9]{1,2})?)/);
+      hasPricedItem = match ? parseFloat(match[1]) > 0 : false;
+    }
+
+    return hasPerson && hasPricedItem;
+  }
+
+  function updateFabVisibility() {
+    fab.hidden = !meetsMinimalRequirements();
+  }
+
+  // Watch the users and items containers for changes
+  const usersList = document.getElementById('usersList');
+  const itemsList = document.getElementById('itemsList');
+  const observerConfig = { childList: true, subtree: true };
+
+  if (usersList) new MutationObserver(updateFabVisibility).observe(usersList, observerConfig);
+  if (itemsList) new MutationObserver(updateFabVisibility).observe(itemsList, observerConfig);
+
+  // Also update after any input changes in the items section (in case you allow inline editing)
+  document.addEventListener('input', (e) => {
+    if (itemsList && itemsList.contains(e.target)) updateFabVisibility();
+  });
+
+  // Initial state
+  document.addEventListener('DOMContentLoaded', updateFabVisibility);
+
+  // Click behavior for Create Bill
+  fab.addEventListener('click', () => {
+    // TODO: replace with your real "finalize" action.
+    // Example: submit a form, call an API, or navigate to a confirmation page.
+
+    // If you already have a function that computes and finalizes, call it here:
+    // finalizeBill();
+
+    // For now, show a lightweight confirmation preview:
+    const subtotalEl = document.getElementById('subtotal');
+    const totalEl = document.getElementById('total');
+    const subtotal = subtotalEl ? subtotalEl.textContent.trim() : '';
+    const total = totalEl ? totalEl.textContent.trim() : '';
+
+    alert(`Creating bill...\n\nSubtotal: ${subtotal}\nTotal: ${total}\n\n(Replace this with your actual submit logic.)`);
+  });
+})();

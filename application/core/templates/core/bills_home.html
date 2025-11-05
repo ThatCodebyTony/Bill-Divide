@@ -1,0 +1,56 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Bills - SplitBill</title>
+
+  <!-- Reusable nav header + base + page styles -->
+  <link rel="stylesheet" href="{% static 'core/css/_nav_header.css' %}">
+  <link rel="stylesheet" href="{% static 'core/css/base.css' %}">
+  <link rel="stylesheet" href="{% static 'core/css/bills_home.css' %}">
+</head>
+<body>
+  {% include 'core/_partials/_nav_header.html' %}
+
+  <div class="container">
+    <div class="header">
+      <h1>Bills</h1>
+      <p>Create new bills or browse your past ones</p>
+    </div>
+
+    <div class="content">
+      <div class="section">
+        <!-- Filters + Create button row -->
+        <div class="filters-row">
+          <div class="filters" id="filters">
+            <button class="filter-btn active" data-filter="all">All Bills</button>
+            <button class="filter-btn" data-filter="pending">Pending</button>
+            <button class="filter-btn" data-filter="settled">Settled</button>
+          </div>
+
+          <button id="createBillBtn" class="btn btn-primary">Create Bill</button>
+        </div>
+
+        <!-- Past bills list -->
+        <div class="bills-list" id="billsList"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="{% static 'core/js/nav_header.js' %}" defer></script>
+  <script src="{% static 'core/js/past_bills.js' %}" defer></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const btn = document.getElementById("createBillBtn");
+      if (btn) {
+        btn.addEventListener("click", () => {
+          window.location.href = "{% url 'core:create_bill' %}";
+        });
+      }
+    });
+  </script>
+</body>
+</html>
