@@ -1,5 +1,5 @@
 import { $, fmt, clamp2 } from '../utils.js';
-import { currentUser } from '../state.js';
+import { currentUser, App } from '../state.js';
 
 function calculateBalances(bills){
   const map = new Map();
@@ -25,7 +25,13 @@ function calculateBalances(bills){
   const res = [];
   for(const [key, amount] of map.entries()){
     const [from,to] = key.split('->');
-    res.push({ fromUserId:from, toUserId:to, fromName:nameFor(from,bills), toName:nameFor(to,bills), amount:clamp2(amount) });
+    res.push({
+      fromUserId: from,
+      toUserId: to,
+      fromName: nameFor(from,bills),
+      toName: nameFor(to,bills),
+      amount: clamp2(amount)
+    });
   }
   return res;
 }
@@ -118,5 +124,10 @@ export function renderHome(App){
 
 export function bindHome(App, {navigate}){
   document.getElementById('home-view')?.addEventListener('click', ()=> navigate(1));
-  document.getElementById('home-add')?.addEventListener('click', ()=> { App.shouldOpenCreateForm = true; navigate(1); });
+  document.getElementById('home-add')?.addEventListener('click', ()=> {
+    // ensure Bills view re-renders with the create form open, then navigate
+    App.shouldOpenCreateForm = true;
+    App._rerender?.();
+    navigate(1);
+  });
 }

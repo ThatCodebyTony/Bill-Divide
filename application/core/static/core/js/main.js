@@ -1,3 +1,4 @@
+// main.js
 import { $, $$ } from './utils.js';
 import { App, initState, currentUser } from './state.js';
 import { auth, saveStore } from './storage.js';
@@ -13,23 +14,25 @@ function render(){
     $('#title').textContent = 'Bill Divide';
     $('nav.bottom').classList.add('hidden');
     $('#screen').innerHTML = `
-      <section class="view active">
-        <div class="card" style="max-width:520px;margin:40px auto;">
-          <div class="center space-y">
-            <div class="logo" style="width:64px;height:64px;font-size:28px">🧾</div>
-            <h1>Bill Divide</h1>
-            <p class="muted">Split bills with friends easily</p>
+    <section class="view active">
+      <div class="card" style="max-width:520px;margin:40px auto;">
+        <div class="center space-y">
+          <div class="logo" style="width:64px;height:64px;">
+            <img src="${window.APP_ASSETS?.logo || '/static/core/img/logo.png'}" alt="Bill Divide Logo" style="width:100%;height:100%;object-fit:contain;border-radius:50%;" />
           </div>
-          <div class="space-y-3" style="margin-top:18px">
-            <label>Username</label>
-            <input id="login-username" class="input" type="text" placeholder="Enter your username" autocomplete="username" />
-            <label>Password</label>
-            <input id="login-password" class="input" type="password" placeholder="Enter your password" autocomplete="current-password" />
-            <button id="login-submit" class="btn primary" style="width:100%">Log In</button>
-            <p class="center hint">Demo app – use any username/password to login</p>
-          </div>
+          <h1>Bill Divide</h1>
+          <p class="muted">Split bills with friends easily</p>
         </div>
-      </section>
+        <div class="space-y-3" style="margin-top:18px">
+          <label>Username</label>
+          <input id="login-username" class="input" type="text" placeholder="Enter your username" autocomplete="username" />
+          <label>Password</label>
+          <input id="login-password" class="input" type="password" placeholder="Enter your password" autocomplete="current-password" />
+          <button id="login-submit" class="btn primary" style="width:100%">Log In</button>
+          <p class="center hint">Demo app – use any username/password to login</p>
+        </div>
+      </div>
+    </section>
     `;
     bindLogin();
     return;
@@ -70,12 +73,48 @@ function bindLogin(){
 }
 
 function navigate(targetIndex){
-  if(targetIndex === App.currentIndex) return;
-  App.lastIndex = App.currentIndex;
-  App.currentIndex = targetIndex;
-  setHash(targetIndex);
-  render();
+  if (targetIndex === App.currentIndex) return;
+
+  const prev = App.currentIndex;
+  const movingRight = targetIndex > prev;
+
+  const fromEl = document.querySelector(`#view-${views[prev].hash}`);
+  const toEl   = document.querySelector(`#view-${views[targetIndex].hash}`);
+
+  if (!fromEl || !toEl){
+    App.lastIndex = prev; App.currentIndex = targetIndex; setHash(targetIndex); render(); return;
+  }
+
+  // prepare: keep both visible; place the entering view just off-screen
+  toEl.classList.add('active', movingRight ? 'from-right' : 'from-left');
+  fromEl.classList.add('active'); // ensure it's visible during the slide
+
+  // disable interactions on the outgoing view during the swipe
+  fromEl.classList.add('is-sliding');
+
+  // kick off the slide on the next paint: new view to center, old view out
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    toEl.classList.remove('from-right','from-left'); // animates to transform: 0
+    fromEl.classList.add(movingRight ? 'exit-left' : 'exit-right'); // animates out
+  }));
+
+  // clean up when the entering view finishes its transform
+  const onDone = (ev) => {
+    if (ev.propertyName !== 'transform') return;
+    toEl.removeEventListener('transitionend', onDone);
+
+    fromEl.classList.remove('active','exit-left','exit-right','is-sliding');
+    toEl.classList.remove('from-left','from-right');
+
+    App.lastIndex = prev;
+    App.currentIndex = targetIndex;
+    setHash(targetIndex);
+    updateNavActive(targetIndex);
+    $('#title').textContent = views[targetIndex].title;
+  };
+  toEl.addEventListener('transitionend', onDone, { once: true });
 }
+
 
 // wire nav
 $('#tab-home')?.addEventListener('click', ()=>navigate(0));
