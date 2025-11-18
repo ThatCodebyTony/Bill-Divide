@@ -259,7 +259,11 @@ nav.bottom button.active{color:var(--blue)}
   color:var(--gray-700);
   transition:all var(--trans);
 }
-.chip.active{background:var(--blue-100);color:var(--blue-900);border-color:var(--blue-200)}
+.chip-person.active{
+  background: var(--cyan);   
+  color: var(--text-900);      
+  border-color: var(--primary-600);
+}
 .dark .chip{background:color-mix(in srgb,var(--text) 12%,transparent);color:var(--text)}
 .dark .chip.active{background:color-mix(in srgb,var(--blue) 25%,transparent);color:var(--text);border-color:var(--blue)}
 
