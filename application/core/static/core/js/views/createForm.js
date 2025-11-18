@@ -428,12 +428,24 @@ export function bindCreateForm(){
     if((st.items||[]).length === 0){ toast('Please add at least one item'); return; }
 
     const { rows, grand } = renderSummary();
+
+    // Persist full itemization and metadata for past-bill details
     const newBill = {
       id: uid('bill'),
       title: st.title.trim(),
       date: st.date,
       total: grand,
       notes: `Tax: ${st.taxPercent||0}%, Tip: ${st.tipPercent||0}%`,
+      items: (st.items||[]).map(i=>({
+        id: i.id,
+        name: i.name,
+        price: i.price,
+        participants: [...(i.participants||[])]
+      })),
+      photo: st.photo || '',
+      taxPercent: st.taxPercent || '',
+      tipPercent: st.tipPercent || '',
+      payerId: st.payerId || 'me',
       participants: rows.map(r=>({
         userId: r.person.id,
         name: r.person.name,
@@ -443,6 +455,7 @@ export function bindCreateForm(){
       status: st.payerId ? 'partial' : 'pending',
       createdBy: 'me',
     };
+
     App.bills = [newBill, ...App.bills];
     saveStore(App);
     drafts.clear();
