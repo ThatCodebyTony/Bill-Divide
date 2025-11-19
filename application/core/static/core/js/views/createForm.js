@@ -33,88 +33,102 @@ export function renderCreateForm() {
     <div id="create" data-init="${initAttr}">
       <h3 class="section-header">Create New Bill</h3>
 
-      <div class="space-y-3" style="margin-top:8px">
-        <label class="section-header">Bill Title</label>
-        <input id="c-title" class="input" placeholder="Dinner at Mario's, Weekend trip, etc." value="${init.title}" />
+      <!-- Card: Title & Date -->
+      <div class="card section-card">
+        <div class="space-y-3" style="margin-top:8px">
+          <label class="section-header">Bill Title</label>
+          <input id="c-title" class="input" placeholder="Dinner at Mario's, Weekend trip, etc." value="${init.title}" />
 
-        <label class="section-header">Date</label>
-        <input id="c-date" class="input" type="date" value="${init.date}" />
-      </div>
-
-      <div class="divider"></div>
-
-      <div class="space-y-2">
-        <label class="section-header">Add People</label>
-        <div class="row">
-          <input id="c-person-input" class="input" placeholder="Enter person's name" />
-          <button id="c-add-person" class="btn">➕</button>
-        </div>
-        <div id="c-people" class="chips">
-          ${init.people.map(personChip).join('')}
+          <label class="section-header">Date</label>
+          <input id="c-date" class="input" type="date" value="${init.date}" />
         </div>
       </div>
 
-      <div class="divider"></div>
-
-      <div class="space-y-2">
-        <label class="section-header">Who is paying?</label>
-        <select id="c-payer" class="select">
-          ${init.people.map(p => `<option value="${p.id}" ${p.id===init.payerId?'selected':''}>${p.name}${p.id==='me'?' (You)':''}</option>`).join('')}
-        </select>
-      </div>
-
-      <div class="divider"></div>
-
-      <div class="space-y-2">
-        <label class="section-header">Take Photo (Optional)</label>
-        <p class="hint">Snap a photo of your receipt for reference</p>
-        ${init.photo ? `
-          <img class="img-receipt" src="${init.photo}" alt="Receipt" />
-          <div style="margin-top:6px"><button id="c-photo-remove" class="btn destructive">🗑️ Remove Photo</button></div>
-        ` : `<input id="c-photo" class="file" type="file" accept="image/*" capture="environment"/>`}
-      </div>
-
-      <div class="divider"></div>
-
-      <div>
-        <label class="section-header">Add Items</label>
-        <div class="row-2" style="margin-top:8px">
-          <input id="c-item-name" class="input" placeholder="Item name" ${init.people.length? '':'disabled'} />
-          <input id="c-item-price" class="input" type="number" min="0" step="0.01" placeholder="Price" ${init.people.length? '':'disabled'} />
-        </div>
-        <div style="margin-top:8px">
-          ${init.people.length ? `<button id="c-item-add" class="btn primary" style="width:100%">Add Item</button>`
-                               : `<p class="hint"><em>Add people first to add items</em></p>`}
-        </div>
-        <div id="c-items" class="space-y-2" style="margin-top:12px">
-          ${init.items.map(i => itemBlock(i, init.people)).join('')}
+      <!-- Card: People -->
+      <div class="card section-card">
+        <div class="space-y-2">
+          <label class="section-header">Add People</label>
+          <div class="row">
+            <input id="c-person-input" class="input" placeholder="Enter person's name" />
+            <button id="c-add-person" class="btn">➕</button>
+          </div>
+          <div id="c-people" class="chips">
+            ${init.people.map(personChip).join('')}
+          </div>
         </div>
       </div>
 
-      <div class="divider"></div>
+      <!-- Card: Payer -->
+      <div class="card section-card">
+        <div class="space-y-2">
+          <label class="section-header">Who is paying?</label>
+          <select id="c-payer" class="select">
+            ${init.people.map(p => `<option value="${p.id}" ${p.id===init.payerId?'selected':''}>${p.name}${p.id==='me'?' (You)':''}</option>`).join('')}
+          </select>
+        </div>
+      </div>
 
-      <div class="row-2">
+      <!-- Card: Photo -->
+      <div class="card section-card">
+        <div class="space-y-2">
+          <label class="section-header">Take Photo (Optional)</label>
+          <p class="hint">Snap a photo of your receipt for reference</p>
+          ${init.photo ? `
+            <img class="img-receipt" src="${init.photo}" alt="Receipt" />
+            <div style="margin-top:6px"><button id="c-photo-remove" class="btn destructive">🗑️ Remove Photo</button></div>
+          ` : `<input id="c-photo" class="file" type="file" accept="image/*" capture="environment"/>`}
+        </div>
+      </div>
+
+      <!-- Card: Items -->
+      <div class="card section-card">
         <div>
-          <label class="section-header">Tax (%)</label>
-          <input id="c-tax" class="input" type="number" min="0" max="100" step="0.01" placeholder="Tax %" value="${init.taxPercent}" />
-          <label style="display:flex; align-items:center; gap:.5rem; margin-top:6px">
-            <input id="c-remember-tax" type="checkbox" ${init.rememberTax?'checked':''}/> <span>Remember tax</span>
-          </label>
-        </div>
-        <div>
-          <label class="section-header">Tip (%)</label>
-          <input id="c-tip" class="input" type="number" min="0" max="100" step="0.01" placeholder="Tip %" value="${init.tipPercent}" />
-          <label style="display:flex; align-items:center; gap:.5rem; margin-top:6px">
-            <input id="c-remember-tip" type="checkbox" ${init.rememberTip?'checked':''}/> <span>Remember tip</span>
-          </label>
+          <label class="section-header">Add Items</label>
+          <div class="row-2" style="margin-top:8px">
+            <input id="c-item-name" class="input" placeholder="Item name" ${init.people.length? '':'disabled'} />
+            <input id="c-item-price" class="input" type="number" min="0" step="0.01" placeholder="Price" ${init.people.length? '':'disabled'} />
+          </div>
+          <div style="margin-top:8px">
+            ${init.people.length ? `<button id="c-item-add" class="btn primary" style="width:100%">Add Item</button>`
+                                : `<p class="hint"><em>Add people first to add items</em></p>`}
+          </div>
+          <div id="c-items" class="space-y-2" style="margin-top:12px">
+            ${init.items.map(i => itemBlock(i, init.people)).join('')}
+          </div>
         </div>
       </div>
 
-      <div id="c-summary" style="margin-top:12px"></div>
+      <!-- Card: Tax & Tip -->
+      <div class="card section-card">
+        <div class="row-2">
+          <div>
+            <label class="section-header">Tax (%)</label>
+            <input id="c-tax" class="input no-spin" type="number" min="0" max="100" step="0.01" placeholder="Tax %" value="${init.taxPercent}" />
+            <label style="display:flex; align-items:center; gap:.5rem; margin-top:6px">
+              <input id="c-remember-tax" type="checkbox" ${init.rememberTax?'checked':''}/> <span>Remember tax</span>
+            </label>
+          </div>
+          <div>
+            <label class="section-header">Tip (%)</label>
+            <input id="c-tip" class="input no-spin" type="number" min="0" max="100" step="0.01" placeholder="Tip %" value="${init.tipPercent}" />
+            <label style="display:flex; align-items:center; gap:.5rem; margin-top:6px">
+              <input id="c-remember-tip" type="checkbox" ${init.rememberTip?'checked':''}/> <span>Remember tip</span>
+            </label>
+          </div>
+        </div>
+      </div>
 
-      <div class="row" style="gap:.5rem; margin-top:12px">
-        <button id="c-submit" class="btn primary" style="flex:1">Create Bill</button>
-        <button id="c-cancel" class="btn outline">Cancel</button>
+      <!-- Card: Summary -->
+      <div class="card section-card">
+        <div id="c-summary" style="margin-top:4px"></div>
+      </div>
+
+      <!-- Card: Actions -->
+      <div class="card section-card">
+        <div class="row" style="gap:.5rem">
+          <button id="c-submit" class="btn primary" style="flex:1">Create Bill</button>
+          <button id="c-cancel" class="btn outline">Cancel</button>
+        </div>
       </div>
     </div>
   `;
@@ -266,8 +280,8 @@ function renderSummary(){
   const grand = clamp2(rows.reduce((a,r)=>a+r.total,0));
   const cur = App.preferences.currency;
 
+  // NOTE: No divider lines here (per request)
   const html = rows.length && (s.items||[]).length ? `
-    <div class="divider"></div>
     <label class="section-header">Summary</label>
     <div class="space-y-3" style="margin-top:8px">
       ${rows.map(r=>`
@@ -277,8 +291,7 @@ function renderSummary(){
             <div class="row" style="justify-content:space-between"><span class="muted">Subtotal:</span><span>${fmt(r.subtotal, cur)}</span></div>
             <div class="row" style="justify-content:space-between"><span class="muted">Tax (${s.taxPercent||0}%):</span><span>${fmt(r.tax, cur)}</span></div>
             <div class="row" style="justify-content:space-between"><span class="muted">Tip (${s.tipPercent||0}%):</span><span>${fmt(r.tip, cur)}</span></div>
-            <div class="divider"></div>
-            <div class="row" style="justify-content:space-between"><span>Total:</span><span style="font-weight:700">${fmt(r.total, cur)}</span></div>
+            <div class="row" style="justify-content:space-between; margin-top:.2rem"><span>Total:</span><span style="font-weight:700">${fmt(r.total, cur)}</span></div>
           </div>
         </div>
       `).join('')}
@@ -480,3 +493,27 @@ export function bindCreateForm(){
     });
   });
 }
+
+/* ----------------------- Style tweaks (local) ----------------------- */
+/* Inject minimal styles to space cards and remove number spinners for tax/tip */
+(function injectCreateStyles(){
+  const id = 'create-form-card-styles';
+  if (document.getElementById(id)) return;
+  const style = document.createElement('style');
+  style.id = id;
+  style.textContent = `
+    .section-card { margin-top: .75rem; }
+
+    /* Remove number input spinners (Chrome/Safari/Edge) */
+    .no-spin::-webkit-outer-spin-button,
+    .no-spin::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+    /* Remove number input spinners (Firefox) */
+    .no-spin {
+      -moz-appearance: textfield;
+    }
+  `;
+  document.head.appendChild(style);
+})();

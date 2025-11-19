@@ -39,6 +39,11 @@ function render(){
   }
 
   $('nav.bottom').classList.remove('hidden');
+
+  // ✅ Preserve scroll position before rebuilding #screen to avoid jump-to-top
+  const screen = $('#screen');
+  const prevScrollTop = screen.scrollTop;
+
   const idx = App.currentIndex;
   $('#title').textContent = views[idx].title;
 
@@ -47,13 +52,16 @@ function render(){
     <section id="view-bills" class="view ${idx===1?'active':''}">${renderBills(App)}</section>
     <section id="view-profile" class="view ${idx===2?'active':''}">${renderProfile(App, currentUser)}</section>
   `;
-  $('#screen').innerHTML = screens;
+  screen.innerHTML = screens;
 
   bindHome(App, { navigate });
   bindBills(App);
   bindProfile(App);
 
   updateNavActive(idx);
+
+  // ✅ Restore previous scroll position so Bills/Home/Profile don't jump
+  screen.scrollTop = prevScrollTop;
 }
 App._rerender = render; // expose to submodules
 
