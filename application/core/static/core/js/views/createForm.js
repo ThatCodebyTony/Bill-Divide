@@ -149,11 +149,11 @@ function itemBlock(item, people){
     <div class="card bg-subtle" data-item="${item.id}" style="padding:10px;">
       <div class="row" style="justify-content:space-between; align-items:center; margin-bottom:6px">
         <div class="row" style="gap:.5rem; align-items:center">
-          <strong>${item.name}</strong>
-          <span class="muted">${fmt(item.price, App.preferences.currency)}</span>
+          <span class="i-name editable" tabindex="0">${item.name}</span>
+          <span class="i-price muted">${fmt(item.price, App.preferences.currency)}</span>
         </div>
         <div class="row" style="gap:.25rem">
-          <button class="btn ghost btn-edit-item" title="Edit">✏️</button>
+          <button class="btn ghost btn-edit-item" title="Edit price">✏️</button>
           <button class="btn ghost btn-del-item" title="Remove">🗑️</button>
         </div>
       </div>
@@ -190,9 +190,15 @@ function currentFormState(){
 
   const items = [...$('#c-items').children].map(div=>{
     const id = div.getAttribute('data-item');
-    const name = div.querySelector('strong').textContent;
-    const priceText = div.querySelector('.muted').textContent;
-    const price = Number(priceText.replace(/[^\d.]/g,'')) || 0;
+
+    // Be resilient to either spans OR inline inputs
+    const nameEl  = div.querySelector('.i-name, .inline-name');
+    const priceEl = div.querySelector('.i-price, .inline-price');
+
+    const name = (nameEl?.value ?? nameEl?.textContent ?? '').trim();
+    const priceText = priceEl?.value ?? priceEl?.textContent ?? '';
+    const price = Number(String(priceText).replace(/[^\d.]/g,'')) || 0;
+
     const participants = [...div.querySelectorAll('.chip-person.active')].map(x=>x.getAttribute('data-person'));
     return { id, name, price, participants };
   });
@@ -280,7 +286,6 @@ function renderSummary(){
   const grand = clamp2(rows.reduce((a,r)=>a+r.total,0));
   const cur = App.preferences.currency;
 
-  // NOTE: No divider lines here (per request)
   const html = rows.length && (s.items||[]).length ? `
     <label class="section-header">Summary</label>
     <div class="space-y-3" style="margin-top:8px">
@@ -406,27 +411,46 @@ export function bindCreateForm(){
     });
   });
 
+  // Main delegated handlers for items
   on($('#c-items'),'click',(e)=>{
-    const item = e.target.closest('[data-item]'); if(!item) return;
+    const item = e.target.closest('[data-item]'); 
+    if(!item) return;
 
+    // remove item
     if(e.target.closest('.btn-del-item')){
-      item.remove(); saveDraftMaybe(); return;
-    }
-    if(e.target.closest('.btn-edit-item')){
-      const name = prompt('Item name', item.querySelector('strong').textContent);
-      if(!name) return;
-      const cur = Number(item.querySelector('.muted').textContent.replace(/[^\d.]/g,'')) || 0;
-      const price = parseFloat(prompt('Item price', cur) || cur);
-      if(isNaN(price) || price<=0){ toast('Invalid price'); return; }
-      item.querySelector('strong').textContent = name;
-      item.querySelector('span.muted').textContent = fmt(price, App.preferences.currency);
-      saveDraftMaybe(); return;
+      item.remove(); 
+      saveDraftMaybe(); 
+      return;
     }
 
+    // ✏️ inline edit name + price (no prompt)
+    if(e.target.closest('.btn-edit-item')){
+      startItemEdit(item);
+      return;
+    }
+
+    // start inline name edit by clicking the name itself
+    const nameEl = e.target.closest('.i-name.editable');
+    if(nameEl){
+      startInlineNameEdit(nameEl);
+      return;
+    }
+
+    // toggle chips
     const chip = e.target.closest('.chip-person');
     if(chip){
       chip.classList.toggle('active');
       saveDraftMaybe();
+    }
+  });
+
+  // also allow keyboard to start name edit (Enter)
+  on($('#c-items'),'keydown',(e)=>{
+    const nameEl = e.target.closest('.i-name.editable');
+    if(!nameEl) return;
+    if(e.key === 'Enter'){
+      e.preventDefault();
+      startInlineNameEdit(nameEl);
     }
   });
 
@@ -494,6 +518,169 @@ export function bindCreateForm(){
   });
 }
 
+/* ----------------------- Inline edit helpers ----------------------- */
+function startInlineNameEdit(nameEl){
+  const original = nameEl.textContent.trim();
+  const input = document.createElement('input');
+  input.type = 'text';
+  input.className = 'input inline-name';
+  input.value = original;
+  input.style.maxWidth = '240px';
+
+  nameEl.replaceWith(input);
+  input.focus();
+  input.select();
+
+  const commit = ()=>{
+    const val = input.value.trim();
+    const finalText = val || original; // keep original if blank
+    const span = document.createElement('span');
+    span.className = 'i-name editable';
+    span.tabIndex = 0;
+    span.textContent = finalText;
+    input.replaceWith(span);
+    saveDraftMaybe();
+  };
+  const cancel = ()=>{
+    const span = document.createElement('span');
+    span.className = 'i-name editable';
+    span.tabIndex = 0;
+    span.textContent = original;
+    input.replaceWith(span);
+  };
+
+  input.addEventListener('keydown',(ev)=>{
+    if(ev.key==='Enter'){ ev.preventDefault(); commit(); }
+    if(ev.key==='Escape'){ ev.preventDefault(); cancel(); }
+  });
+  input.addEventListener('blur', commit);
+}
+
+function startItemEdit(item){
+  if(item.getAttribute('data-editing') === '1') return;
+  item.setAttribute('data-editing', '1');
+
+  const nameSpan = item.querySelector('.i-name');
+  const priceSpan = item.querySelector('.i-price');
+
+  const originalName = (nameSpan?.textContent || '').trim();
+  const originalPrice = Number((priceSpan?.textContent || '').replace(/[^\d.]/g,'')) || 0;
+
+  // Build inputs
+  const nameInput = document.createElement('input');
+  nameInput.type = 'text';
+  nameInput.className = 'input inline-name';
+  nameInput.value = originalName;
+  nameInput.style.maxWidth = '220px';
+
+  const priceInput = document.createElement('input');
+  priceInput.type = 'number';
+  priceInput.min = '0';
+  priceInput.step = '0.01';
+priceInput.className = 'input inline-price no-spin';
+  priceInput.value = String(originalPrice);
+  priceInput.style.width = '120px';
+
+  // Swap spans → inputs
+  nameSpan.replaceWith(nameInput);
+  priceSpan.replaceWith(priceInput);
+
+  // Buttons (reuse the right-hand button cluster)
+  const btnRow = item.querySelector('.row [class*="btn-edit-item"]').parentElement;
+
+  // Hide trash while editing (optional)
+  const delBtn = btnRow.querySelector('.btn-del-item');
+  if(delBtn) delBtn.style.display = 'none';
+
+  // Replace ✏️ with Save/Cancel
+  const editBtn = btnRow.querySelector('.btn-edit-item');
+  editBtn.style.display = 'none';
+
+  const saveBtn = document.createElement('button');
+  saveBtn.className = 'btn primary btn-save-item';
+  saveBtn.textContent = 'Save';
+
+  const cancelBtn = document.createElement('button');
+  cancelBtn.className = 'btn outline btn-cancel-item';
+  cancelBtn.textContent = 'Cancel';
+
+  btnRow.appendChild(saveBtn);
+  btnRow.appendChild(cancelBtn);
+
+  // Handlers
+  const commit = ()=>{
+    const newName = (nameInput.value || '').trim() || originalName;
+    const newPrice = parseFloat(priceInput.value || '');
+    if(isNaN(newPrice) || newPrice<=0){
+      toast('Please enter a valid price');
+      priceInput.focus();
+      return;
+    }
+
+    // Restore spans with updated values
+    const nameSpanNew = document.createElement('span');
+    nameSpanNew.className = 'i-name editable';
+    nameSpanNew.tabIndex = 0;
+    nameSpanNew.textContent = newName;
+
+    const priceSpanNew = document.createElement('span');
+    priceSpanNew.className = 'i-price muted';
+    priceSpanNew.textContent = fmt(newPrice, App.preferences.currency);
+
+    nameInput.replaceWith(nameSpanNew);
+    priceInput.replaceWith(priceSpanNew);
+
+    // Cleanup buttons
+    saveBtn.remove();
+    cancelBtn.remove();
+    editBtn.style.display = '';
+    if(delBtn) delBtn.style.display = '';
+
+    item.removeAttribute('data-editing');
+    saveDraftMaybe();
+  };
+
+  const cancel = ()=>{
+    // Restore original spans
+    const nameSpanNew = document.createElement('span');
+    nameSpanNew.className = 'i-name editable';
+    nameSpanNew.tabIndex = 0;
+    nameSpanNew.textContent = originalName;
+
+    const priceSpanNew = document.createElement('span');
+    priceSpanNew.className = 'i-price muted';
+    priceSpanNew.textContent = fmt(originalPrice, App.preferences.currency);
+
+    nameInput.replaceWith(nameSpanNew);
+    priceInput.replaceWith(priceSpanNew);
+
+    // Cleanup buttons
+    saveBtn.remove();
+    cancelBtn.remove();
+    editBtn.style.display = '';
+    if(delBtn) delBtn.style.display = '';
+
+    item.removeAttribute('data-editing');
+  };
+
+  saveBtn.addEventListener('click', commit);
+  cancelBtn.addEventListener('click', cancel);
+
+  // Keyboard UX
+  nameInput.addEventListener('keydown', (e)=>{
+    if(e.key==='Enter'){ e.preventDefault(); commit(); }
+    if(e.key==='Escape'){ e.preventDefault(); cancel(); }
+  });
+  priceInput.addEventListener('keydown', (e)=>{
+    if(e.key==='Enter'){ e.preventDefault(); commit(); }
+    if(e.key==='Escape'){ e.preventDefault(); cancel(); }
+  });
+
+  // Focus first field
+  nameInput.focus();
+  nameInput.select();
+}
+
 /* ----------------------- Style tweaks (local) ----------------------- */
 /* Inject minimal styles to space cards and remove number spinners for tax/tip */
 (function injectCreateStyles(){
@@ -513,6 +700,48 @@ export function bindCreateForm(){
     /* Remove number input spinners (Firefox) */
     .no-spin {
       -moz-appearance: textfield;
+    }
+  `;
+  document.head.appendChild(style);
+})();
+
+/* Inline name visual affordance */
+(function injectInlineNameStyles(){
+  const id = 'create-form-inline-name-styles';
+  if (document.getElementById(id)) return;
+  const style = document.createElement('style');
+  style.id = id;
+  style.textContent = `
+.i-name.editable {
+  font-weight: 600; /* makes item name bold */
+  border-bottom: 1px dashed rgba(0,0,0,.25);
+  cursor: text;
+  line-height: 1.2;
+}
+
+    .i-name.editable:focus {
+      outline: 2px solid color-mix(in srgb, var(--blue, #48dbfb) 60%, #fff);
+      outline-offset: 2px;
+      border-bottom-color: transparent;
+    }
+    .inline-name.input {
+      padding: .2rem .35rem;
+      height: auto;
+    }
+  `;
+  document.head.appendChild(style);
+})();
+
+/* Inline item edit (name + price) input sizing */
+(function injectInlineItemEditStyles(){
+  const id = 'create-form-inline-edit-both';
+  if (document.getElementById(id)) return;
+  const style = document.createElement('style');
+  style.id = id;
+  style.textContent = `
+    .inline-name.input, .inline-price.input {
+      padding: .2rem .35rem;
+      height: auto;
     }
   `;
   document.head.appendChild(style);
