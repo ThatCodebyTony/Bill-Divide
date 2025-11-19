@@ -67,32 +67,8 @@ export function renderHome(App){
         </div>
       </div>
 
-      ${balances.length? `
-        <div class="card">
-          <h3>Outstanding Balances</h3>
-          <div class="space-y-2" style="margin-top:8px">
-            ${balances.map(b=>{
-              const isYouOwe = b.fromUserId==='me';
-              return `
-                <div class="card" style="padding:10px;background:${isYouOwe?'var(--neg-bg)':'var(--pos-bg)'}">
-                  <div class="row" style="justify-content:space-between;align-items:center">
-                    <div>${isYouOwe ? `You owe <strong>${b.toName}</strong>` : `<strong>${b.fromName}</strong> owes you`}</div>
-                    <div style="font-weight:600;${isYouOwe?'color:var(--neg-fg)':'color:var(--pos-fg)'}">${fmt(b.amount, cur)}</div>
-                  </div>
-                </div>
-              `;
-            }).join('')}
-          </div>
-        </div>
-      `: ''}
 
-      <div class="card">
-        <h3>Quick Actions</h3>
-        <div class="grid2" style="margin-top:8px">
-          <button id="home-add" class="btn primary"><span class="i"/span>${hasDraft?'Continue Draft':'Add Bill'}</button>
-          <button id="home-view" class="btn outline">View All Bills <span class="i"/span></button>
-        </div>
-      </div>
+
 
       <div class="card">
         <h3>Recent Activity</h3>

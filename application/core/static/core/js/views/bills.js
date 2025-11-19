@@ -1,4 +1,3 @@
-// bills.js
 import { $, $$, fmt } from '../utils.js';
 import { toast } from '../components/toast.js';
 import { saveStore } from '../storage.js';
@@ -34,7 +33,7 @@ function ensureBillsStyles(){
   document.head.appendChild(style);
 }
 
-/* ---------- Details (inline) renderer for past bills ---------- */
+/* ---------- Details (inline) renderer for bills (past & upcoming) ---------- */
 function renderBillDetails(bill, cur){
   const items = bill.items || [];
   const d = new Date(bill.date).toLocaleDateString('en-US',{month:'short', day:'numeric', year:'numeric'});
@@ -101,7 +100,7 @@ function renderBillDetails(bill, cur){
           `;
         }).join('')}
       </div>
-      <p class="hint" style="margin-top:6px">Tap the card header again to collapse.</p>
+      <p class="hint" style="margin-top:6px">Tap "Show details" again to collapse.</p>
     </div>
   `;
 }
@@ -112,8 +111,8 @@ function renderBillCard(bill, cur, expanded){
 
   return `
     <div class="card ${past?'bill-past':''}" data-bill="${bill.id}">
-      <!-- Header area (click to expand if past) -->
-      <div class="row bill-card-header" style="justify-content:space-between;align-items:flex-start;margin-bottom:6px; cursor:${past?'pointer':'default'}">
+      <!-- Header area -->
+      <div class="row bill-card-header" style="justify-content:space-between;align-items:flex-start;margin-bottom:6px;">
         <div>
           <h3 style="margin:.1rem 0">${bill.title}</h3>
           <div class="muted" style="font-size:.9rem">${d}</div>
@@ -127,9 +126,9 @@ function renderBillCard(bill, cur, expanded){
         </div>
       </div>
 
-      <!-- Centered "Show details" toggle for ALL cards; only toggles expansion for past bills -->
+      <!-- Centered "Show details" toggle for ALL cards -->
       <div class="details-toggle-wrap">
-        <button class="btn ghost btn-show-details" ${past ? '' : 'disabled'}>${expanded ? 'Hide details' : 'Show details'}</button>
+        <button class="btn ghost btn-show-details">${expanded ? 'Hide details' : 'Show details'}</button>
       </div>
 
       <div class="row" style="justify-content:space-between;align-items:center;margin-bottom:6px">
@@ -170,7 +169,7 @@ function renderBillCard(bill, cur, expanded){
         }).join('')}
       </div>
 
-      <!-- Inline expansion area for past bills -->
+      <!-- Inline expansion area for all bills -->
       <div class="bill-details ${expanded ? '' : 'hidden'}" style="margin-top:10px">
         ${renderBillDetails(bill, cur)}
       </div>
@@ -281,13 +280,11 @@ export function bindBills(App){
       const b = App.bills.find(x=>x.id===id);
       const past = b ? isPastBill(b) : true;
 
-      // "Show details" button toggles expansion (only meaningful for past)
+      // "Show details" button toggles expansion for ALL bills
       if(e.target.closest('.btn-show-details')){
-        if(past){
-          App.expandedBills = App.expandedBills || {};
-          App.expandedBills[id] = !App.expandedBills[id];
-          App._rerender();
-        }
+        App.expandedBills = App.expandedBills || {};
+        App.expandedBills[id] = !App.expandedBills[id];
+        App._rerender();
         e.stopPropagation();
         return;
       }
@@ -349,7 +346,7 @@ export function bindBills(App){
         return;
       }
 
-      // Toggle inline expansion when clicking header/non-button area for past bills
+      // (Optional) Header click toggles expansion only for past bills — keep previous behavior
       if(past && (e.target.closest('.bill-card-header') || e.target === card)){
         App.expandedBills = App.expandedBills || {};
         App.expandedBills[id] = !App.expandedBills[id];
