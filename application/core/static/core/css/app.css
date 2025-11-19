@@ -118,17 +118,21 @@ header .inner{
   justify-content:center;
   gap:.5rem;
 }
-.logo{
-  width:24px;
-  height:24px;
+.logo {
+  width:100px;
+  height: 100px;
   border-radius:50%;
-  background:var(--blue);
+  background:transparent; /* optional — so it doesn’t tint your logo */
   display:inline-flex;
   align-items:center;
   justify-content:center;
-  color:white;
-  font-weight:800;
 }
+.login-logo {
+  width: 400px;       /* adjust as you like */
+  height: 400px;
+  background: transparent;
+}
+
 
 nav.bottom{
   position:fixed;
