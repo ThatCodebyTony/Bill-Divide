@@ -145,7 +145,7 @@ ${(!bills || bills.length===0) ? `
   </div>
   <div class="demo-clear-wrap">
     <button id="demo-clear" class="btn destructive" style="margin-top:1rem;width:100%">
-      🗑️ Delete all bills (demo only)
+    Delete all bills (DEMO only)
     </button>
   </div>
 `}

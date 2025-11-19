@@ -139,6 +139,110 @@ window.addEventListener('keydown', (e)=>{
 // boot
 const a = auth.load();
 initState(a);
+
+// DEV: only seed when empty (or toggle this flag yourself)
+if (!App.bills || App.bills.length === 0) {
+  loadDevMocks(App);
+  saveStore(App); // persist so it shows up across reloads
+}
+
 if(!location.hash) setHash(App.currentIndex);
 else App.currentIndex = viewFromHash();
 render();
+
+/* ---------------- DEV MOCKS ---------------- */
+function loadDevMocks(App){
+  if ((App.bills || []).some(b => b.id?.startsWith('bill_mock_'))) return;
+
+  const bills = [
+    // 1️⃣ You are the payer
+    {
+      id: 'bill_mock_dinner',
+      title: "Dinner at Mario's",
+      date: '2025-11-10',
+      items: [
+        { id:'food', name:'Pasta', price:45, participants:['me','alex','jamie'] },
+        { id:'wine', name:'Wine', price:30, participants:['alex','jamie'] },
+        { id:'dessert', name:'Dessert', price:15, participants:['me','alex','jamie'] },
+      ],
+      taxPercent:8,
+      tipPercent:10,
+      payerId:'me',
+      participants:[
+        { userId:'me', name:'You', share:0, paid:true },
+        { userId:'alex', name:'Alex', share:30, paid:false },
+        { userId:'jamie', name:'Jamie', share:30, paid:false },
+      ],
+      total:90,
+      notes:'Tax: 8%, Tip: 10%',
+      createdBy:'me'
+    },
+
+    // 2️⃣ You owe someone
+    {
+      id: 'bill_mock_coffee',
+      title: 'Coffee Run',
+      date: '2025-11-18',
+      items: [
+        { id:'coffee', name:'2 Cappuccinos', price:12, participants:['me','morgan'] },
+        { id:'muffin', name:'Muffin', price:4, participants:['me'] }
+      ],
+      taxPercent:0,
+      tipPercent:15,
+      payerId:'morgan',
+      participants:[
+        { userId:'me', name:'You', share:9.2, paid:false },
+        { userId:'morgan', name:'Morgan', share:6.8, paid:true }
+      ],
+      total:16,
+      notes:'Tip: 15%',
+      createdBy:'me'
+    },
+
+    // 3️⃣ You already paid your share (rent)
+    {
+      id: 'bill_mock_rent',
+      title: 'November Apartment Rent',
+      date: '2025-11-01',
+      items: [
+        { id:'rent', name:'Rent', price:1800, participants:['me','sam','taylor'] },
+        { id:'garage', name:'Garage', price:150, participants:['me','sam'] }
+      ],
+      taxPercent:0,
+      tipPercent:0,
+      payerId:'sam',
+      participants:[
+        { userId:'me', name:'You', share:0, paid:false, settled:true },
+        { userId:'sam', name:'Sam', share:650, paid:true },
+        { userId:'taylor', name:'Taylor', share:650, paid:false }
+      ],
+      total:1300,
+      notes:'Rent and garage split',
+      createdBy:'me'
+    },
+
+    // 4️⃣ Large shared expense (mixed participants)
+    {
+      id: 'bill_mock_bday',
+      title: 'Birthday Dinner',
+      date: '2025-11-15',
+      items: [
+        { id:'item_food', name:'Food',  price:150, participants:['me','jamie','alex'] },
+        { id:'item_wine', name:'Wine',  price:48,  participants:['jamie','alex'] }
+      ],
+      taxPercent:8,
+      tipPercent:15,
+      payerId:'jamie',
+      participants:[
+        { userId:'me',    name:'You',   share:61.50, paid:false },
+        { userId:'jamie', name:'Jamie', share:91.02, paid:true },
+        { userId:'alex',  name:'Alex',  share:91.02, paid:false }
+      ],
+      total:243.54,
+      notes:'Tax: 8%, Tip: 15%',
+      createdBy:'me'
+    }
+  ];
+
+  App.bills = bills;
+}
