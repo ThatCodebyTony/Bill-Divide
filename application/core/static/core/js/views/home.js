@@ -1,11 +1,24 @@
 import { fmt, clamp2 } from '../utils.js';
 import { App } from '../state.js';
 
+/** Ensure each participant has an immutable originalShare for display purposes */
+function ensureOriginalShares(app){
+  (app.bills || []).forEach(bill => {
+    bill.participants = bill.participants.map(p => ({
+      ...p,
+      originalShare: p.originalShare ?? p.share
+    }));
+  });
+}
+
 function calculateBalances(bills){
   const map = new Map();
+
   for(const bill of bills){
     const payer = bill.participants.find(p => p.paid) || bill.participants[0];
     if(!payer) continue;
+
+    // Use the *current* share for balance math (can be 0 after settlement)
     for(const part of bill.participants){
       if(part.userId === payer.userId) continue;
       if(!part.paid && part.share > 0){
@@ -39,6 +52,9 @@ function calculateBalances(bills){
 }
 
 export function renderHome(App){
+  // Make sure immutable originalShare exists before any rendering
+  ensureOriginalShares(App);
+
   const balances = calculateBalances(App.bills || []);
   const youOwe = clamp2(balances.filter(b => b.fromUserId === 'me').reduce((s,b)=>s+b.amount,0));
   const owedToYou = clamp2(balances.filter(b => b.toUserId === 'me').reduce((s,b)=>s+b.amount,0));
@@ -75,8 +91,13 @@ export function renderHome(App){
             ${recentBills.map(bill => {
               const payer = bill.participants.find(p=>p.paid);
               const isPaidByYou = payer?.userId === 'me';
-              const yourShare = bill.participants.find(p=>p.userId==='me')?.share || 0;
-              const diff = isPaidByYou ? Number(bill.total || 0) - yourShare : -yourShare;
+
+              // IMPORTANT: use immutable originalShare so it never drops to $0 after you settle
+              const yourInitial = bill.participants.find(p=>p.userId==='me')?.originalShare || 0;
+
+              // What the bill meant for you at creation time (display-only)
+              const diff = isPaidByYou ? Number(bill.total || 0) - yourInitial : -yourInitial;
+
               return `
                 <div class="bill-card">
                   <div class="info">
@@ -97,6 +118,9 @@ export function renderHome(App){
 }
 
 export function bindHome(App, {navigate}){
+  // Ensure original shares exist on first bind as well
+  ensureOriginalShares(App);
+
   const bindTabs = () => {
     document.getElementById('tab-bills')?.addEventListener('click', ()=> navigate('bills'));
     document.getElementById('tab-profile')?.addEventListener('click', ()=> navigate('profile'));
