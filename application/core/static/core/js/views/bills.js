@@ -137,20 +137,26 @@ function renderPastBillsSection(app, cur, bills){
       <button id="b-clear" class="btn outline">Clear</button>
     </section>
 
-    ${(!bills || bills.length===0) ? `
-      <div class="empty muted">No past bills yet.</div>
-    ` : `
-      <div id="b-list" class="bill-list">
-        ${bills.map(b => billCard(b, cur)).join('')}
-      </div>
-    `}
+${(!bills || bills.length===0) ? `
+  <div class="empty muted">No past bills yet.</div>
+` : `
+  <div id="b-list" class="bill-list">
+    ${bills.map(b => billCard(b, cur)).join('')}
+  </div>
+  <div class="demo-clear-wrap">
+    <button id="demo-clear" class="btn destructive" style="margin-top:1rem;width:100%">
+      🗑️ Delete all bills (demo only)
+    </button>
+  </div>
+`}
+
   `;
 }
 
 function bindPastBills(app){
   const wrap = $('#bills'); if(!wrap) return;
 
-  // NEW: build and inject suggestions once (or whenever this view mounts)
+  // Build and inject suggestions once (or whenever this view mounts)
   populateSearchSuggestions(app);
 
   const ctrls = ['#b-search','#b-person','#b-status','#b-from','#b-to'];
@@ -181,8 +187,25 @@ function bindPastBills(app){
     });
   }
 
+  // Delegated handler for the demo "Delete all bills" button
+  on(wrap, 'click', (e)=>{
+    const btn = e.target.closest('#demo-clear');
+    if(!btn) return;
+    if(!confirm('Delete all bills? This is only for demonstration.')) return;
+
+    app.bills = [];
+    app.viewBillId = null;
+
+    // Notify other views (Home recalculates balances)
+    document.dispatchEvent(new CustomEvent('app:updated', { detail: { source: 'demo-clear' }}));
+
+    // Re-render the list area
+    filterAndRender(app);
+  });
+
   filterAndRender(app);
 }
+
 
 
 function filterAndRender(app){
@@ -278,7 +301,7 @@ function billCard(bill, cur){
   }
 
   return `
-    <article class="bill-card card" data-bill="${bill.id}">
+    <article class="bill-card card" data-bill="${bill.id}" data-status="${lineClass}">
       <div class="row head">
         <div class="left">
           <div class="title">${escapeHtml(bill.title || 'Untitled')}</div>
@@ -301,19 +324,22 @@ function billCard(bill, cur){
   `;
 }
 
+
 /* ----------------------- Bill Detail View ----------------------- */
 function renderBillDetail(bill, cur){
   const dateLabel = new Date(bill.date).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
-  const payer = payerOf(bill);
+  const payer = payerOf(bill); // { userId, name, ... }
   const peopleNames = (bill.participants||[]).map(p=>p.name).join(', ') || '—';
 
-  const breakdown = computeBreakdown(bill); // per-person breakdown + item shares
+  const breakdown = computeBreakdown(bill);
 
-  // Banner label/style
+  // CTA selection
   const relation = relationOf(bill);
-  // Show "Pay bill" only when you actually owe
-  const ctaIsPay = (relation === 'youowe');
-  const ctaLabel = ctaIsPay ? 'Pay bill' : 'Paid';
+  let ctaLabel = 'Paid';
+  let ctaClass = 'done';
+  let isButton = false;
+  if (relation === 'youowe') { ctaLabel = 'Pay bill'; ctaClass = 'pay'; isButton = true; }
+  else if (relation === 'youreowed') { ctaLabel = 'Notify'; ctaClass = 'notify'; isButton = true; }
 
   return `
     <div class="bill-detail">
@@ -328,9 +354,9 @@ function renderBillDetail(bill, cur){
 
       <!-- Status/CTA banner -->
       <section
-        class="bd-cta card ${ctaIsPay ? 'pay' : 'done'}"
+        class="bd-cta card ${ctaClass}"
         id="bd-cta"
-        ${ctaIsPay ? 'role="button" tabindex="0" aria-label="Pay bill"' : ''}
+        ${isButton ? 'role="button" tabindex="0" aria-label="'+ctaLabel+'"' : ''}
         aria-live="polite"
       >
         ${ctaLabel}
@@ -351,20 +377,18 @@ function renderBillDetail(bill, cur){
               return p ? p.name : 'Friend';
             });
             const each = participants.length ? it.price / participants.length : it.price;
-          return `
-            <div class="bd-item">
-              <div class="i-top">
-                <div class="i-name">${escapeHtml(it.name||'Item')}</div>
-                <div class="i-price">${fmt(Number(it.price||0), cur)}</div>
+            return `
+              <div class="bd-item">
+                <div class="i-top">
+                  <div class="i-name">${escapeHtml(it.name||'Item')}</div>
+                  <div class="i-price">${fmt(Number(it.price||0), cur)}</div>
+                </div>
+                <div class="i-sub muted">
+                  Shared by: ${escapeHtml(names.join(', ') || '—')}<br>
+                  ${participants.length ? `Each pays: ${fmt(round2(each), cur)}` : ''}
+                </div>
               </div>
-              <div class="i-sub muted">
-                Shared by: ${escapeHtml(names.join(', ') || '—')}<br>
-                ${participants.length ? `Each pays: ${fmt(round2(each), cur)}` : ''}
-              </div>
-            </div>
-          `;
-
-            
+            `;
           }).join('')}
         </div>
       </section>
@@ -386,20 +410,34 @@ function renderBillDetail(bill, cur){
       <section class="bd-people card">
         <h3>Per Person</h3>
         <div class="bd-people-list">
-          ${breakdown.people.map(p=>`
-            <div class="bd-person">
-              <div class="p-row"><strong>${escapeHtml(p.name)}</strong></div>
-              <div class="p-row"><span class="muted">Items:</span><span>${fmt(p.itemsSubtotal, cur)}</span></div>
-              <div class="p-row"><span class="muted">Tax:</span><span>${fmt(p.tax, cur)}</span></div>
-              <div class="p-row"><span class="muted">Tip:</span><span>${fmt(p.tip, cur)}</span></div>
-              <div class="p-row total"><span>Total:</span><span class="strong">${fmt(p.total, cur)}</span></div>
-            </div>
-          `).join('')}
+          ${breakdown.people.map(p=>{
+            const part = (bill.participants||[]).find(x=>x.userId===p.id);
+            const isPayer = payer && part && part.userId === payer.userId;
+            const isSettled = !!(isPayer || part?.settled || (part?.share ?? 0) === 0 || p.total === 0);
+
+            return `
+              <div class="bd-person">
+                <div class="p-row"><strong>${escapeHtml(p.name)}</strong></div>
+                <div class="p-row badges">
+                  ${isPayer
+                    ? `<span class="badge payer">Payer</span>`
+                    : `<span class="badge ${isSettled ? 'paid' : 'unpaid'}">${isSettled ? 'Paid' : 'Unpaid'}</span>`
+                  }
+                </div>
+                <div class="p-row"><span class="muted">Items:</span><span>${fmt(p.itemsSubtotal, cur)}</span></div>
+                <div class="p-row"><span class="muted">Tax:</span><span>${fmt(p.tax, cur)}</span></div>
+                <div class="p-row"><span class="muted">Tip:</span><span>${fmt(p.tip, cur)}</span></div>
+                <div class="p-row total"><span>Total:</span><span class="strong">${fmt(p.total, cur)}</span></div>
+              </div>
+            `;
+          }).join('')}
         </div>
       </section>
     </div>
   `;
 }
+
+
 
 function bindBillDetail(app, { navigate } = {}){
   // Back
@@ -682,6 +720,13 @@ style.textContent = `
   border-radius:10px;
   padding:1rem 1.2rem;
   box-shadow:0 2px 8px rgba(0,0,0,0.05);
+  border: 2px solid transparent;
+  box-sizing: border-box;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    border-color 0.25s ease,
+    border-width 0.25s ease;
 }
 .bill-card .row.head { display:flex; align-items:flex-start; width:100%; }
 .bill-card .left {
@@ -705,6 +750,68 @@ style.textContent = `
 .me-line.pos .me-label { color:#16a34a; }
 .me-line.neg .me-label { color:#dc2626; }
 .me-line .me-amount { font-weight:600; }
+/* Badges row under each person */
+.bd-person .badges {
+  display: flex;
+  gap: .4rem;
+  flex-wrap: wrap;
+  margin: .25rem 0 .35rem;
+}
+
+/* Badge variants (uses your global .badge base if present) */
+.badge.payer {
+  background: var(--chip-bg);
+  color: var(--primary-600);
+  border-color: var(--primary-600);
+  font-weight: 700;
+}
+.badge.paid {
+  background: var(--green-50);
+  color: var(--green-600);
+  border-color: transparent;
+  font-weight: 600;
+}
+.badge.unpaid {
+  background: var(--red-50);
+  color: var(--red-600);
+  border-color: transparent;
+  font-weight: 600;
+}
+
+
+/* Hover animation */
+.bill-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 14px rgba(0,0,0,0.12);
+  border-width: 3px;
+}
+.bill-card[data-status="pos"]:hover {
+  border-color: #16a34a; /* green – you're owed */
+}
+.bill-card[data-status="neg"]:hover {
+  border-color: #dc2626; /* red – you owe */
+}
+.bill-card[data-status="neutral"]:hover {
+  border-color: #94a3b8; /* gray – paid */
+}
+.bill-card:hover::before {
+  filter: brightness(1.15);
+}
+.demo-clear-wrap {
+  margin-top: 1rem;
+  display: flex;
+  justify-content: center;
+}
+#demo-clear {
+  background: #ef4444;
+  color: #fff;
+  border: none;
+  font-weight: 600;
+  transition: filter .2s ease;
+}
+#demo-clear:hover {
+  filter: brightness(1.1);
+}
 
 /* Bill Detail */
 .bill-detail { display:flex; flex-direction:column; gap:.75rem; }
@@ -712,7 +819,7 @@ style.textContent = `
 .bd-meta { display:grid; grid-template-columns: 1fr 1fr 1fr; gap:.5rem; }
 @media (max-width: 720px){ .bd-meta { grid-template-columns: 1fr; } }
 
-.card { background:#fff; border-radius:10px; padding:1rem 1.1rem; box-shadow:0 2px 8px rgba(0,0,0,.05); }
+.card { background:#fff; border-radius:10px; padding:1rem 1.1rem; box-shadow:0 2px 8px rgba(0,0,0,0.05); }
 
 .bd-total .label { font-size:.8rem; color:#64748b; }
 .bd-total .amount { font-size:1.4rem; font-weight:800; }
@@ -751,8 +858,8 @@ style.textContent = `
 
 /* Cyan “Pay bill” look */
 .bd-cta.pay {
-  background: #48dbfb;       /* cyan-like */
-  color: #0f172a;            /* dark text for contrast */
+  background: #48dbfb;
+  color: #0f172a;
   box-shadow: 0 4px 14px rgba(0,0,0,.08), inset 0 0 0 1px #e5e7eb;
   cursor: pointer;
   user-select: none;
@@ -764,8 +871,41 @@ style.textContent = `
   color: #111827;
   border: 1px solid #e5e7eb;
 }
+
+/* Left status strip on bill cards */
+.bill-card {
+  position: relative;
+  overflow: hidden;
+}
+.bill-card::before {
+  content: "";
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 10px;
+  background: #cbd5e1;
+  transition: background 0.2s ease, filter 0.2s ease;
+}
+/* Notify banner (for “you're owed”) */
+.bd-cta.notify {
+  background: #fef08a;   /* warm yellow tone */
+  color: #78350f;
+  border: 1px solid #facc15;
+  cursor: pointer;
+  user-select: none;
+}
+.bd-cta.notify:hover {
+  filter: brightness(1.05);
+}
+
+/* Status colors */
+.bill-card[data-status="pos"]::before { background: #16a34a; }
+.bill-card[data-status="neg"]::before { background: #dc2626; }
+.bill-card[data-status="neutral"]::before { background: #94a3b8; }
 `;
 document.head.appendChild(style);
+
+
+
 
 // Developer note for future readers:
 // Clicking the cyan "Pay bill" banner in the bill detail will zero-out *your* share on that bill,
