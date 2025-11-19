@@ -1,7 +1,8 @@
+// filepath: /home/tony/HCI/Bill-Divide/application/core/static/core/js/views/home.js
 import { fmt, clamp2 } from '../utils.js';
 import { App } from '../state.js';
 
-/** Ensure each participant has an immutable originalShare for display purposes */
+/** Ensure each participant has an immutable originalShare for display-only purposes */
 function ensureOriginalShares(app){
   (app.bills || []).forEach(bill => {
     bill.participants = bill.participants.map(p => ({
@@ -13,12 +14,9 @@ function ensureOriginalShares(app){
 
 function calculateBalances(bills){
   const map = new Map();
-
   for(const bill of bills){
     const payer = bill.participants.find(p => p.paid) || bill.participants[0];
     if(!payer) continue;
-
-    // Use the *current* share for balance math (can be 0 after settlement)
     for(const part of bill.participants){
       if(part.userId === payer.userId) continue;
       if(!part.paid && part.share > 0){
@@ -52,7 +50,6 @@ function calculateBalances(bills){
 }
 
 export function renderHome(App){
-  // Make sure immutable originalShare exists before any rendering
   ensureOriginalShares(App);
 
   const balances = calculateBalances(App.bills || []);
@@ -60,7 +57,9 @@ export function renderHome(App){
   const owedToYou = clamp2(balances.filter(b => b.toUserId === 'me').reduce((s,b)=>s+b.amount,0));
   const net = clamp2(owedToYou - youOwe);
   const cur = App.preferences?.currency || 'USD';
-  const recentBills = [...(App.bills || [])].sort((a,b)=>new Date(b.date)-new Date(a.date)).slice(0,5);
+  const recentBills = [...(App.bills || [])]
+    .sort((a,b)=>new Date(b.date)-new Date(a.date))
+    .slice(0,5);
 
   return `
     <div id="home" class="home-view fade-in">
@@ -87,21 +86,35 @@ export function renderHome(App){
         ${recentBills.length === 0 ? `
           <div class="empty muted">No recent bills yet.</div>
         ` : `
-          <div class="recent-list">
+          <div class="recent-list" id="recent-list">
             ${recentBills.map(bill => {
-              const payer = bill.participants.find(p=>p.paid);
+              // compute status same as bills.js so the recent card colors match past-bill cards
+              const payer = (bill.participants || []).find(p => p.paid) || null;
+              const yourShare = (bill.participants || []).find(p => p.userId === 'me')?.share || 0;
+              const total = Number(bill.total || 0);
+              let lineClass = 'neutral';
+              if (payer?.userId === 'me' && total > yourShare + 0.005) lineClass = 'pos';
+              else if (payer?.userId !== 'me' && yourShare > 0.005) lineClass = 'neg';
+
+              // display amount as before (positive if you paid, negative if you owe)
               const isPaidByYou = payer?.userId === 'me';
-
-              // IMPORTANT: use immutable originalShare so it never drops to $0 after you settle
               const yourInitial = bill.participants.find(p=>p.userId==='me')?.originalShare || 0;
-
-              // What the bill meant for you at creation time (display-only)
               const diff = isPaidByYou ? Number(bill.total || 0) - yourInitial : -yourInitial;
 
+              const idAttr = bill.id ? `data-bill="${bill.id}"` : '';
+              const aria = `aria-label="Open ${bill.title || 'bill'} from ${new Date(bill.date).toLocaleDateString('en-US',{month:'short',day:'numeric'})}"`;
+
               return `
-                <div class="bill-card">
+                <div
+                  class="bill-card clickable"
+                  ${idAttr}
+                  data-status="${lineClass}"
+                  role="button"
+                  tabindex="0"
+                  ${aria}
+                >
                   <div class="info">
-                    <div class="title">${bill.title}</div>
+                    <div class="title">${bill.title || 'Untitled'}</div>
                     <div class="date">${new Date(bill.date).toLocaleDateString('en-US',{month:'short',day:'numeric'})}</div>
                   </div>
                   <div class="amount ${isPaidByYou?'pos':'neg'}">
@@ -118,12 +131,35 @@ export function renderHome(App){
 }
 
 export function bindHome(App, {navigate}){
-  // Ensure original shares exist on first bind as well
-  ensureOriginalShares(App);
-
   const bindTabs = () => {
-    document.getElementById('tab-bills')?.addEventListener('click', ()=> navigate('bills'));
-    document.getElementById('tab-profile')?.addEventListener('click', ()=> navigate('profile'));
+    // navigate expects numeric indexes: 0=Home, 1=Bills, 2=Profile
+    document.getElementById('tab-bills')?.addEventListener('click', ()=> navigate(1));
+    document.getElementById('tab-profile')?.addEventListener('click', ()=> navigate(2));
+  };
+
+  const bindRecent = () => {
+    const list = document.getElementById('recent-list');
+    if(!list) return;
+
+    const openBill = (el) => {
+      const card = el.closest('.bill-card[data-bill]');
+      if(!card) return;
+      const id = card.getAttribute('data-bill');
+      App.viewBillId = id;            // tell Bills view which bill to show
+      App.showCreateBill = false;     // ensure we're not on create form
+      // Re-render so the Bills view is generated with App.viewBillId set,
+      // then perform the navigation so the detail is visible immediately.
+      App._rerender?.();
+      navigate(1);                    // go to Bills; bills.js will render detail
+    };
+
+    list.addEventListener('click', (e)=> openBill(e.target));
+    list.addEventListener('keydown', (e)=>{
+      if(e.key === 'Enter' || e.key === ' '){
+        e.preventDefault();
+        openBill(e.target);
+      }
+    });
   };
 
   const refreshHome = () => {
@@ -131,10 +167,12 @@ export function bindHome(App, {navigate}){
     if (container) {
       container.innerHTML = renderHome(App);
       bindTabs();
+      bindRecent();
     }
   };
 
   bindTabs();
+  bindRecent();
   document.addEventListener('app:updated', refreshHome);
 }
 
@@ -180,14 +218,8 @@ style.textContent = `
   border-radius: 10px;
   padding: 1rem;
 }
-.tile.owe {
-  background: #fee2e2;
-  color: #dc2626;
-}
-.tile.owed {
-  background: #dcfce7;
-  color: #16a34a;
-}
+.tile.owe { background: #fee2e2; color: #dc2626; }
+.tile.owed { background: #dcfce7; color: #16a34a; }
 .tile .label { font-size: 0.9rem; color: #475569; margin-bottom: 0.25rem; }
 .tile .value { font-size: 1.5rem; font-weight: 600; }
 
@@ -209,14 +241,16 @@ style.textContent = `
   display: flex;
   justify-content: space-between;
   align-items: center;
-  transition: box-shadow .2s ease;
+  transition: box-shadow .2s ease, transform .15s ease;
 }
-.bill-card:hover { box-shadow: 0 6px 14px rgba(0,0,0,0.1); }
+.bill-card:hover { box-shadow: 0 6px 14px rgba(0,0,0,0.1); transform: translateY(-2px); }
 .bill-card .info .title { font-weight: 600; margin-bottom: 0.25rem; }
 .bill-card .info .date { font-size: 0.85rem; color: #64748b; }
 .bill-card .amount { font-weight: 600; font-size: 1.2rem; }
 .bill-card .amount.pos { color: #16a34a; }
 .bill-card .amount.neg { color: #dc2626; }
+.bill-card.clickable { cursor: pointer; }
+.bill-card.clickable:focus { outline: 2px solid #0ea5e9; outline-offset: 2px; }
 .empty { text-align: center; margin-top: 1rem; }
 `;
 document.head.appendChild(style);

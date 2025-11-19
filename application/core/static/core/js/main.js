@@ -54,7 +54,7 @@ function render(){
   screen.innerHTML = screens;
 
   bindHome(App, { navigate });
-  bindBills(App);
+  bindBills(App, { navigate });
   bindProfile(App);
 
   updateNavActive(idx);
