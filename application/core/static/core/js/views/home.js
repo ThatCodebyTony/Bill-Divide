@@ -100,7 +100,7 @@ export function renderHome(App){
               const diff = isPaidByYou ? Number(bill.total || 0) - yourInitial : -yourInitial;
 
               // NEW: Replace + / - with descriptive labels
-              const labelText = isPaidByYou ? "You're Owed" : "You woe";
+              const labelText = isPaidByYou ? "You're Owed" : "You owe";
               const displayAmount = fmt(Math.abs(diff), cur);
 
               const idAttr = bill.id ? `data-bill="${bill.id}"` : '';
