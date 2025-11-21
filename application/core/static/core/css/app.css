@@ -55,16 +55,32 @@ h3{font-size:1rem;font-weight:600}
   filter:brightness(1.05);
   transform:translateY(-1px);
 }
-.dark #toggle-create.btn{
-  background:color-mix(in srgb, var(--cyan) 80%, white 10%);
-  color:#fff;
-}
 
-/* Dark-mode button adjustments */
-.dark .btn{background:var(--card);color:var(--text);border-color:var(--border)}
-.dark .btn.outline{background:transparent}
-.dark .btn.primary{background:var(--blue);color:#fff;border-color:transparent}
-.dark .btn:hover{filter:brightness(1.05)}
+/* === DARK MODE BUTTONS === */
+.dark .btn{
+  background:var(--card);
+  color:var(--text);
+  border-color:var(--border);
+}
+.dark .btn.primary{
+  background:var(--blue);
+  color:#fff;
+  border-color:transparent;
+}
+.dark .btn.destructive{
+  background:var(--danger);
+  color:#fff;
+  border-color:transparent;
+}
+.dark .btn.ghost,
+.dark .btn.outline{
+  background:transparent;
+  border-color:color-mix(in srgb,var(--border) 60%,transparent);
+  color:var(--text);
+}
+.dark .btn:hover{
+  filter:brightness(1.08);
+}
 
 /* Inputs */
 .input,.select,.file{
@@ -73,6 +89,13 @@ h3{font-size:1rem;font-weight:600}
   border:1px solid var(--border);
   border-radius:10px;
   background:transparent;
+  color:var(--text);
+}
+.dark .input,
+.dark .select,
+.dark .file{
+  background:color-mix(in srgb,var(--card) 96%,black 4%);
+  border-color:var(--border);
   color:var(--text);
 }
 
@@ -120,19 +143,18 @@ header .inner{
 }
 .logo {
   width:100px;
-  height: 100px;
+  height:100px;
   border-radius:50%;
-  background:transparent; /* optional — so it doesn’t tint your logo */
+  background:transparent;
   display:inline-flex;
   align-items:center;
   justify-content:center;
 }
 .login-logo {
-  width: 400px;       /* adjust as you like */
-  height: 400px;
-  background: transparent;
+  width:400px;
+  height:400px;
+  background:transparent;
 }
-
 
 nav.bottom{
   position:fixed;
@@ -159,39 +181,34 @@ nav.bottom button{
   transition:color var(--trans);
 }
 nav.bottom button.active{color:var(--blue)}
+.dark nav.bottom button.active{color:var(--blue)}
 
 /* === SCROLL + VIEW FIX === */
 .screen{
   position:relative;
-  overflow:hidden; /* ✅ prevents horizontal overflow from translated views */
+  overflow:hidden;
   height:calc(100svh - 80px - 64px);
   min-height:420px;
 }
-:root {
-  --page-gap: 130px;
-}
+:root { --page-gap:130px }
 
 .view {
-  position: absolute;
-  inset: 0;
-  display: none;
-  opacity: 1;
-  transform: translateX(0);
-  transition: transform 300ms ease;
-  min-height: 100%;
-  overflow: auto;
-  will-change: transform;
+  position:absolute;
+  inset:0;
+  display:none;
+  opacity:1;
+  transform:translateX(0);
+  transition:transform 300ms ease;
+  min-height:100%;
+  overflow:auto;
+  will-change:transform;
 }
-
-.view.active { display: block; }
-
-.view.from-left  { transform: translateX(calc(-100% - var(--page-gap))); }
-.view.from-right { transform: translateX(calc(100% + var(--page-gap))); }
-
-.view.exit-left  { transform: translateX(calc(-100% - var(--page-gap))); }
-.view.exit-right { transform: translateX(calc(100% + var(--page-gap))); }
-
-.view.is-sliding { pointer-events: none; }
+.view.active{display:block}
+.view.from-left{transform:translateX(calc(-100% - var(--page-gap)))}
+.view.from-right{transform:translateX(calc(100% + var(--page-gap)))}
+.view.exit-left{transform:translateX(calc(-100% - var(--page-gap)))}
+.view.exit-right{transform:translateX(calc(100% + var(--page-gap)))}
+.view.is-sliding{pointer-events:none}
 
 .toolbar{display:flex;gap:.5rem}
 
@@ -216,31 +233,48 @@ nav.bottom button.active{color:var(--blue)}
   transition:all var(--trans);
 }
 .toast.show{opacity:1;transform:translateY(0)}
+.dark .toast{
+  background:color-mix(in srgb,var(--card) 60%,black 40%);
+  color:var(--text);
+}
 
 /* Status badges */
 .status-pending{background:var(--yellow-100);color:var(--yellow-800);border-color:transparent}
-/* 🔧 Changed partial from blue to a yellow variant */
 .status-partial{
-  background: color-mix(in srgb, var(--yellow-100) 70%, white 30%);
-  color: var(--yellow-800);
-  border-color: transparent;
+  background:color-mix(in srgb,var(--yellow-100) 70%,white 30%);
+  color:var(--yellow-800);
+  border-color:transparent;
   font-weight:600;
 }
 .status-settled{background:var(--green-50);color:var(--green-600);border-color:transparent}
 .paid{background:var(--green-50);color:var(--green-600)}
 .unpaid{background:var(--red-50);color:var(--red-600)}
+.dark .status-pending,
+.dark .status-partial{
+  background:color-mix(in srgb,var(--yellow-100) 25%,transparent);
+  color:color-mix(in srgb,white 90%,var(--yellow-800) 10%);
+}
+.dark .status-settled,
+.dark .paid{
+  background:color-mix(in srgb,var(--green-600) 25%,transparent);
+  color:var(--pos-fg);
+}
+.dark .unpaid{
+  background:color-mix(in srgb,var(--red-600) 25%,transparent);
+  color:var(--neg-fg);
+}
 
-/* Notify badge (for unpaid participants in past bills) */
+/* Notify badge */
 .badge.notify {
-  background: color-mix(in srgb, var(--cyan) 15%, white);
-  color: var(--primary-500);
-  border-color: transparent;
-  font-style: italic;
+  background:color-mix(in srgb,var(--cyan) 15%,white);
+  color:var(--primary-500);
+  border-color:transparent;
+  font-style:italic;
 }
 .dark .badge.notify {
-  background: color-mix(in srgb, var(--cyan) 25%, transparent);
-  color: var(--text);
-  border-color: var(--cyan);
+  background:color-mix(in srgb,var(--cyan) 25%,transparent);
+  color:var(--text);
+  border-color:var(--cyan);
 }
 
 /* Misc */
@@ -250,7 +284,18 @@ nav.bottom button.active{color:var(--blue)}
 .hint{font-size:.8rem;color:var(--muted)}
 .safe{padding-top:72px;padding-bottom:92px}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:.5rem}
-.avatar{width:64px;height:64px;border-radius:50%;background:var(--blue);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:22px}
+.avatar{
+  width:64px;
+  height:64px;
+  border-radius:50%;
+  background:var(--blue);
+  color:#fff;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-weight:800;
+  font-size:22px;
+}
 
 /* Chips */
 .chips{display:flex;flex-wrap:wrap;gap:.4rem}
@@ -264,12 +309,19 @@ nav.bottom button.active{color:var(--blue)}
   transition:all var(--trans);
 }
 .chip-person.active{
-  background: var(--cyan);   
-  color: var(--text-900);      
-  border-color: var(--primary-600);
+  background:var(--cyan);
+  color:var(--text-900);
+  border-color:var(--primary-600);
 }
-.dark .chip{background:color-mix(in srgb,var(--text) 12%,transparent);color:var(--text)}
-.dark .chip.active{background:color-mix(in srgb,var(--blue) 25%,transparent);color:var(--text);border-color:var(--blue)}
+.dark .chip{
+  background:color-mix(in srgb,var(--text) 12%,transparent);
+  color:var(--text);
+}
+.dark .chip.active{
+  background:color-mix(in srgb,var(--blue) 25%,transparent);
+  color:var(--text);
+  border-color:var(--blue);
+}
 
 .i{font-style:normal}
 
@@ -295,3 +347,7 @@ button:focus,.input:focus,.select:focus{
   background:var(--surface-subtle);
 }
 .confirm-bar .actions{display:flex;gap:.5rem}
+.dark .confirm-bar{
+  background:color-mix(in srgb,var(--card) 75%,black 25%);
+  border-color:color-mix(in srgb,var(--border) 70%,transparent);
+}

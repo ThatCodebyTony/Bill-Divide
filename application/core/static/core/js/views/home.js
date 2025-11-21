@@ -88,7 +88,6 @@ export function renderHome(App){
         ` : `
           <div class="recent-list" id="recent-list">
             ${recentBills.map(bill => {
-              // compute status same as bills.js so the recent card colors match past-bill cards
               const payer = (bill.participants || []).find(p => p.paid) || null;
               const yourShare = (bill.participants || []).find(p => p.userId === 'me')?.share || 0;
               const total = Number(bill.total || 0);
@@ -96,10 +95,13 @@ export function renderHome(App){
               if (payer?.userId === 'me' && total > yourShare + 0.005) lineClass = 'pos';
               else if (payer?.userId !== 'me' && yourShare > 0.005) lineClass = 'neg';
 
-              // display amount as before (positive if you paid, negative if you owe)
               const isPaidByYou = payer?.userId === 'me';
               const yourInitial = bill.participants.find(p=>p.userId==='me')?.originalShare || 0;
               const diff = isPaidByYou ? Number(bill.total || 0) - yourInitial : -yourInitial;
+
+              // NEW: Replace + / - with descriptive labels
+              const labelText = isPaidByYou ? "You're Owed" : "You woe";
+              const displayAmount = fmt(Math.abs(diff), cur);
 
               const idAttr = bill.id ? `data-bill="${bill.id}"` : '';
               const aria = `aria-label="Open ${bill.title || 'bill'} from ${new Date(bill.date).toLocaleDateString('en-US',{month:'short',day:'numeric'})}"`;
@@ -117,8 +119,8 @@ export function renderHome(App){
                     <div class="title">${bill.title || 'Untitled'}</div>
                     <div class="date">${new Date(bill.date).toLocaleDateString('en-US',{month:'short',day:'numeric'})}</div>
                   </div>
-                  <div class="amount ${isPaidByYou?'pos':'neg'}">
-                    ${isPaidByYou?'+':''}${fmt(diff,cur)}
+                  <div class="amount ${isPaidByYou?'pos':'neg'}" aria-label="${labelText} ${displayAmount}">
+                    <span class="amount__label">${labelText}</span> ${displayAmount}
                   </div>
                 </div>
               `;
@@ -132,7 +134,6 @@ export function renderHome(App){
 
 export function bindHome(App, {navigate}){
   const bindTabs = () => {
-    // navigate expects numeric indexes: 0=Home, 1=Bills, 2=Profile
     document.getElementById('tab-bills')?.addEventListener('click', ()=> navigate(1));
     document.getElementById('tab-profile')?.addEventListener('click', ()=> navigate(2));
   };
@@ -145,12 +146,10 @@ export function bindHome(App, {navigate}){
       const card = el.closest('.bill-card[data-bill]');
       if(!card) return;
       const id = card.getAttribute('data-bill');
-      App.viewBillId = id;            // tell Bills view which bill to show
-      App.showCreateBill = false;     // ensure we're not on create form
-      // Re-render so the Bills view is generated with App.viewBillId set,
-      // then perform the navigation so the detail is visible immediately.
+      App.viewBillId = id;
+      App.showCreateBill = false;
       App._rerender?.();
-      navigate(1);                    // go to Bills; bills.js will render detail
+      navigate(1);
     };
 
     list.addEventListener('click', (e)=> openBill(e.target));
@@ -204,7 +203,7 @@ style.textContent = `
   margin-bottom: 0.5rem;
 }
 
-.card--main-balance .amount { font-size: 2.2rem; font-weight: 700; }
+.card--main-balance .amount { font-size: 2.2rem; }
 .card--main-balance .amount.pos { color: #4ade80; }
 .card--main-balance .amount.neg { color: #f87171; }
 
@@ -221,7 +220,7 @@ style.textContent = `
 .tile.owe { background: #fee2e2; color: #dc2626; }
 .tile.owed { background: #dcfce7; color: #16a34a; }
 .tile .label { font-size: 0.9rem; color: #475569; margin-bottom: 0.25rem; }
-.tile .value { font-size: 1.5rem; font-weight: 600; }
+.tile .value { font-size: 1.5rem; }
 
 .recent h2 {
   font-size: 1.1rem;
@@ -244,9 +243,9 @@ style.textContent = `
   transition: box-shadow .2s ease, transform .15s ease;
 }
 .bill-card:hover { box-shadow: 0 6px 14px rgba(0,0,0,0.1); transform: translateY(-2px); }
-.bill-card .info .title { font-weight: 600; margin-bottom: 0.25rem; }
+.bill-card .info .title { margin-bottom: 0.25rem; }
 .bill-card .info .date { font-size: 0.85rem; color: #64748b; }
-.bill-card .amount { font-weight: 600; font-size: 1.2rem; }
+.bill-card .amount { font-size: 1.2rem; }
 .bill-card .amount.pos { color: #16a34a; }
 .bill-card .amount.neg { color: #dc2626; }
 .bill-card.clickable { cursor: pointer; }

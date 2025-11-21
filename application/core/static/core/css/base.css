@@ -60,22 +60,73 @@
   --yellow-800:#92400e; /* keep for contrasty text; override if desired */
 }
 
-/* === Dark mode tuned from your palette === */
-.dark{
-  /* Deep surfaces pulled from primary-500 */
-  --bg: color-mix(in srgb, var(--primary-500) 70%, black 30%);
-  --card: color-mix(in srgb, var(--primary-500) 55%, black 45%);
-  --text: color-mix(in srgb, white 92%, var(--primary-700) 8%);
-  --muted: var(--text-500);
-  --border: color-mix(in srgb, white 10%, transparent);
-  --blue: color-mix(in srgb, var(--cyan) 80%, white 20%);
-  --surface-subtle: color-mix(in srgb, var(--text) 10%, transparent);
+/* === Dark mode (accessible + palette-true) === */
+.dark {
+  /* Base surfaces (teal-tinted charcoal) */
+  --bg: color-mix(in srgb, black 82%, var(--primary-500) 18%);     /* ~#101618 */
+  --card: color-mix(in srgb, black 72%, var(--primary-500) 28%);   /* a step up from bg */
+  --surface-subtle: color-mix(in srgb, var(--primary-500) 22%, transparent);
 
-  /* Dark-mode status tints */
-  --neg-bg: color-mix(in srgb, var(--danger) 20%, transparent);
-  --neg-fg: color-mix(in srgb, var(--danger) 88%, white 12%);
-  --pos-bg: color-mix(in srgb, var(--success) 20%, transparent);
-  --pos-fg: color-mix(in srgb, var(--success) 88%, white 12%);
+  /* Text & muted (≥ 13:1 and ~4.5:1 on card/bg) */
+  --text: color-mix(in srgb, white 94%, var(--primary-700) 6%);
+  --muted: color-mix(in srgb, var(--text) 65%, transparent);
+
+  /* Borders & depth (light, non-chalky) */
+  --border: color-mix(in srgb, white 12%, transparent);
+  --shadow: 0 .5px 0 rgba(0,0,0,.5), 0 8px 28px rgba(0,0,0,.65);
+
+  /* Action/link blues pulled from your cyan, slightly softened */
+  --blue: color-mix(in srgb, var(--cyan) 86%, white 14%);
+  --blue-600: var(--blue);
+  --blue-500: var(--blue);
+
+  /* Status chips readable on dark */
+  --neg-bg: color-mix(in srgb, var(--danger) 24%, transparent);
+  --neg-fg: color-mix(in srgb, white 92%, var(--danger) 8%);
+  --pos-bg: color-mix(in srgb, var(--success) 24%, transparent);
+  --pos-fg: color-mix(in srgb, white 92%, var(--success) 8%);
+}
+
+/* Prefer system dark automatically (keeps your .dark toggle working too) */
+@media (prefers-color-scheme: dark){
+  :root:not(.dark-disabled){ color-scheme: dark; }
+}
+
+/* Dark-mode controls & affordances */
+.dark a{ color: var(--blue); }
+.dark a:hover{ filter: brightness(1.1); }
+
+.dark input,
+.dark textarea,
+.dark select{
+  background: color-mix(in srgb, var(--card) 96%, black 4%);
+  border:1px solid var(--border);
+  color:var(--text);
+}
+
+.dark ::placeholder{ color: color-mix(in srgb, var(--muted) 70%, transparent); }
+
+.dark .chip,
+.dark [data-surface="subtle"]{
+  background: var(--surface-subtle);
+  border:1px solid color-mix(in srgb, var(--border) 60%, transparent);
+}
+
+/* Focus ring that’s visible on dark and light */
+:where(button, a, input, textarea, select):focus-visible{
+  outline:2px solid color-mix(in srgb, var(--blue) 80%, white 10%);
+  outline-offset:2px;
+}
+
+/* “New Bill / Return to Past Bills” button in dark: brighter, crisp */
+.dark #toggle-create.btn{
+  background: color-mix(in srgb, var(--cyan) 85%, white 5%);
+  color:#fff;
+  border-color: transparent;
+}
+.dark #toggle-create.btn:hover{
+  filter: brightness(1.08);
+  transform: translateY(-1px);
 }
 
 /* === RESET & GLOBAL FIXES === */
@@ -99,6 +150,7 @@ img, video, canvas, svg{ max-width:100%; height:auto }
 
 /* Prevent long text overflow */
 *{ overflow-wrap:anywhere }
+
 /* === Home "New Bill" / "Return to Past Bills" button === */
 #toggle-create.btn {
   background: var(--cyan);
@@ -112,6 +164,6 @@ img, video, canvas, svg{ max-width:100%; height:auto }
   transform: translateY(-1px);
 }
 .dark #toggle-create.btn {
-  background: color-mix(in srgb, var(--cyan) 80%, white 10%);
+  background: color-mix(in srgb, var(--cyan) 85%, white 5%);
   color: #fff;
 }
