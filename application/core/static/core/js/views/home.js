@@ -82,9 +82,9 @@ export function renderHome(App){
       </section>
 
       <section class="recent">
-        <h2>Recent Bills</h2>
+        <h2>Recent History</h2>
         ${recentBills.length === 0 ? `
-          <div class="empty muted">No recent bills yet.</div>
+          <div class="empty muted">No recent history yet.</div>
         ` : `
           <div class="recent-list" id="recent-list">
             ${recentBills.map(bill => {
